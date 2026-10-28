@@ -5,7 +5,8 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { connectDB } from './db.js';
+import mongoose from 'mongoose';
+import { connectDB, isDatabaseConnected } from './db.js';
 
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -26,11 +27,17 @@ const frontendUrl = process.env.FRONTEND_URL || '*';
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, serverless) or matching origin
-      if (!origin || frontendUrl === '*' || origin === frontendUrl || origin.endsWith('.vercel.app')) {
+      // Allow requests with no origin or matching allowed domains
+      if (
+        !origin ||
+        frontendUrl === '*' ||
+        origin === frontendUrl ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.onrender.com')
+      ) {
         callback(null, true);
       } else {
-        callback(null, true); // Permissive in dev/staging
+        callback(null, true); // Permissive in development
       }
     },
     credentials: true,
@@ -50,24 +57,52 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Middleware to ensure Database Connection per request (Serverless safe)
+// Middleware to ensure Persistent Database Connection per request
 app.use(async (req: Request, res: Response, next: NextFunction) => {
+  // Pass health check directly without blocking
+  if (req.path === '/api/health') {
+    return next();
+  }
+
   try {
-    await connectDB();
+    if (!isDatabaseConnected()) {
+      await connectDB();
+    }
     next();
-  } catch (error) {
-    console.error('Database connection error middleware:', error);
-    res.status(500).json({
+  } catch (error: any) {
+    console.error('Database connection error in request middleware:', error.message);
+    
+    // Write operations MUST fail if database is not connected - prevent false positives and ephemeral data loss
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+      return res.status(503).json({
+        success: false,
+        message: 'Persistent database is not connected. Operation was not saved to prevent data loss. Please check MONGODB_URI settings.',
+      });
+    }
+
+    res.status(503).json({
       success: false,
       message: 'Database connection failed. Please check server logs and MONGODB_URI settings.',
     });
   }
 });
 
-// Health check endpoint
+// Health check endpoint with real database status
 app.get('/api/health', (req: Request, res: Response) => {
+  const connected = isDatabaseConnected();
   res.json({
-    status: 'healthy',
+    status: connected ? 'healthy' : 'database_disconnected',
+    database: {
+      connected,
+      engine: connected
+        ? process.env.MONGODB_URI?.includes('mongodb+srv')
+          ? 'MongoDB Atlas'
+          : 'MongoDB'
+        : 'Disconnected',
+      name: mongoose.connection.name || 'test_booking',
+      host: mongoose.connection.host || 'unknown',
+      readyState: mongoose.connection.readyState,
+    },
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
   });
@@ -86,7 +121,7 @@ app.use('/api/*', (req: Request, res: Response) => {
   res.status(404).json({ success: false, message: 'API route not found.' });
 });
 
-// Serve frontend static build if available (Production Full-Stack Deployment)
+// Serve frontend static build if available (Production Full-Stack Deployment on Render)
 const distPath = path.resolve(__dirname, '../dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));

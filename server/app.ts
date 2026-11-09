@@ -14,6 +14,15 @@ import studentRoutes from './routes/studentRoutes.js';
 import slotRoutes from './routes/slotRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import resultRoutes from './routes/resultRoutes.js';
+import slokaRoutes from './routes/slokaRoutes.js';
+import answerRoutes from './routes/answerRoutes.js';
+
+import { Student } from './models/Student.js';
+import { Booking } from './models/Booking.js';
+import { Sloka } from './models/Sloka.js';
+import { StudentAnswer } from './models/StudentAnswer.js';
+import { Result } from './models/Result.js';
+import { TestSlot } from './models/TestSlot.js';
 
 dotenv.config();
 
@@ -33,7 +42,9 @@ app.use(
         frontendUrl === '*' ||
         origin === frontendUrl ||
         origin.endsWith('.vercel.app') ||
-        origin.endsWith('.onrender.com')
+        origin.endsWith('.onrender.com') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')
       ) {
         callback(null, true);
       } else {
@@ -44,13 +55,13 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // limit each IP to 300 requests per windowMs
+  max: 500, // limit each IP to 500 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
@@ -71,7 +82,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
     next();
   } catch (error: any) {
     console.error('Database connection error in request middleware:', error.message);
-    
+
     // Write operations MUST fail if database is not connected - prevent false positives and ephemeral data loss
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
       return res.status(503).json({
@@ -87,22 +98,41 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Health check endpoint with real database status
-app.get('/api/health', (req: Request, res: Response) => {
+// Comprehensive Health check endpoint with real database status & collection counts
+app.get('/api/health', async (req: Request, res: Response) => {
   const connected = isDatabaseConnected();
+  let counts: any = null;
+
+  if (connected) {
+    try {
+      const [students, bookings, slokas, answers, results, slots] = await Promise.all([
+        Student.countDocuments(),
+        Booking.countDocuments({ status: 'active' }),
+        Sloka.countDocuments({ isActive: true }),
+        StudentAnswer.countDocuments(),
+        Result.countDocuments(),
+        TestSlot.countDocuments(),
+      ]);
+      counts = { students, activeBookings: bookings, slokas, submittedAnswers: answers, results, testSlots: slots };
+    } catch (e: any) {
+      counts = { error: e.message };
+    }
+  }
+
   res.json({
     status: connected ? 'healthy' : 'database_disconnected',
     database: {
       connected,
       engine: connected
         ? process.env.MONGODB_URI?.includes('mongodb+srv')
-          ? 'MongoDB Atlas'
-          : 'MongoDB'
+          ? 'MongoDB Atlas (Production Cloud)'
+          : 'MongoDB (Persistent Engine)'
         : 'Disconnected',
       name: mongoose.connection.name || 'test_booking',
       host: mongoose.connection.host || 'unknown',
       readyState: mongoose.connection.readyState,
     },
+    counts,
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
   });
@@ -115,6 +145,8 @@ app.use('/api/students', studentRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/results', resultRoutes);
+app.use('/api/slokas', slokaRoutes);
+app.use('/api/answers', answerRoutes);
 
 // 404 Handler for undefined API routes
 app.use('/api/*', (req: Request, res: Response) => {

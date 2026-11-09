@@ -55,6 +55,54 @@ export interface Result {
   dateUploaded: string;
 }
 
+export interface Question {
+  _id: string;
+  questionText: string;
+  options: string[];
+  correctOptionIndex?: number;
+  explanation?: string;
+  marks: number;
+}
+
+export interface Sloka {
+  _id: string;
+  syllabus: string;
+  chapter: number;
+  slokaNumber: number;
+  title: string;
+  sanskritText: string;
+  transliteration?: string;
+  englishMeaning: string;
+  questions: Question[];
+  isActive: boolean;
+}
+
+export interface StudentAnswerItem {
+  slokaId: string;
+  questionId: string;
+  questionText: string;
+  selectedOptionIndex: number;
+  selectedOptionText: string;
+  correctOptionIndex: number;
+  isCorrect: boolean;
+  marksAwarded: number;
+  maxMarks: number;
+}
+
+export interface StudentAnswer {
+  _id: string;
+  student: Student | string;
+  booking?: Booking | string;
+  syllabus: string;
+  testName: string;
+  answers: StudentAnswerItem[];
+  totalScore: number;
+  maxScore: number;
+  percentage: number;
+  grade: GradeType;
+  submittedAt: string;
+}
+
 export interface Pagination {
   total: number;
   page: number;

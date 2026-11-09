@@ -1,0 +1,37 @@
+{
+  "admins": [
+    {
+      "_id": "admin_1",
+      "username": "admin",
+      "name": "System Administrator",
+      "email": "admin@institution.edu",
+      "passwordHash": "$2a$10$m4DWF81bYTGKACQMl8TKgeLiNotXpd4mhRM4dMeea2j7uhxgCMJQ.",
+      "createdAt": "2026-10-02T11:16:26.532Z"
+    }
+  ],
+  "students": [
+    {
+      "_id": "id_1793113667577_dkn7k2446",
+      "studentId": "SL01",
+      "name": "Dattaji",
+      "phone": "6303169489",
+      "registrationDate": "2026-10-27T15:07:47.577Z",
+      "createdAt": "2026-10-27T15:07:47.577Z"
+    }
+  ],
+  "slots": [],
+  "bookings": [],
+  "results": [
+    {
+      "_id": "id_1793114228465_wljmtcqz2",
+      "student": "id_1793113667577_dkn7k2446",
+      "testName": "1-5",
+      "marksObtained": null,
+      "maxMarks": null,
+      "grade": "A+",
+      "status": "Published",
+      "dateUploaded": "2026-10-27T15:17:08.465Z",
+      "createdAt": "2026-10-27T15:17:08.469Z"
+    }
+  ]
+}

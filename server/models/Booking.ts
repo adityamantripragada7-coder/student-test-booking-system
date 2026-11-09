@@ -21,21 +21,25 @@ const BookingSchema = new Schema<IBooking>(
       type: Schema.Types.ObjectId,
       ref: 'TestSlot',
       required: true,
+      index: true,
     },
     syllabus: {
       type: String,
       required: true,
       trim: true,
       default: 'General Syllabus',
+      index: true,
     },
     status: {
       type: String,
       enum: ['active', 'cancelled', 'completed'],
       default: 'active',
+      index: true,
     },
     bookedAt: {
       type: Date,
       default: Date.now,
+      index: true,
     },
   },
   {
@@ -48,5 +52,9 @@ BookingSchema.index(
   { student: 1 },
   { unique: true, partialFilterExpression: { status: 'active' } }
 );
+
+// Rapid filtering index
+BookingSchema.index({ slot: 1, status: 1 });
+BookingSchema.index({ createdAt: -1 });
 
 export const Booking = model<IBooking>('Booking', BookingSchema);

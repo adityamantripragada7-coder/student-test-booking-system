@@ -23,6 +23,7 @@ const ResultSchema = new Schema<IResult>(
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     marksObtained: {
       type: Number,
@@ -39,19 +40,24 @@ const ResultSchema = new Schema<IResult>(
       required: true,
       trim: true,
       enum: ['A+', 'A', 'B+', 'B', 'C+', 'C', 'Retest'],
+      index: true,
     },
     status: {
       type: String,
       default: 'Published',
+      index: true,
     },
     dateUploaded: {
       type: Date,
       default: Date.now,
+      index: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+ResultSchema.index({ student: 1, dateUploaded: -1 });
 
 export const Result = model<IResult>('Result', ResultSchema);

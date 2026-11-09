@@ -2,16 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-import { GraduationCap, ShieldCheck, UserCheck, KeyRound, AlertCircle, CheckCircle2, UserPlus } from 'lucide-react';
+import { GraduationCap, ShieldCheck, UserCheck, KeyRound, AlertCircle, CheckCircle2, UserPlus, Sparkles, BookOpen } from 'lucide-react';
 import { Modal } from '../components/Modal';
 
 export const Login: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'student' | 'admin'>('student');
-  
+  const [studentMode, setStudentMode] = useState<'login' | 'register'>('login');
+
   // Student Login Form State
   const [studentIdInput, setStudentIdInput] = useState('');
   const [studentError, setStudentError] = useState('');
   const [studentLoading, setStudentLoading] = useState(false);
+
+  // Student Registration Form State
+  const [regName, setRegName] = useState('');
+  const [regPhone, setRegPhone] = useState('');
+  const [regError, setRegError] = useState('');
+  const [regSuccess, setRegSuccess] = useState('');
+  const [regLoading, setRegLoading] = useState(false);
 
   // Admin Login Form State
   const [adminUsername, setAdminUsername] = useState('');
@@ -30,7 +38,7 @@ export const Login: React.FC = () => {
   const [setupSuccess, setSetupSuccess] = useState('');
   const [setupLoading, setSetupLoading] = useState(false);
 
-  const { loginAdmin, loginStudent, hasAdmin, refreshSetupStatus } = useAuth();
+  const { loginAdmin, loginStudent, refreshSetupStatus } = useAuth();
   const navigate = useNavigate();
 
   // Handle Student Login
@@ -59,6 +67,45 @@ export const Login: React.FC = () => {
       setStudentError('Server connection error. Please try again.');
     } finally {
       setStudentLoading(false);
+    }
+  };
+
+  // Handle Student Registration
+  const handleStudentRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError('');
+    setRegSuccess('');
+
+    if (!regName.trim()) {
+      setRegError('Full Name is required.');
+      return;
+    }
+
+    if (!regPhone.trim()) {
+      setRegError('Mobile number is required.');
+      return;
+    }
+
+    setRegLoading(true);
+    try {
+      const res = await api.post('/auth/student/register', {
+        name: regName.trim(),
+        phone: regPhone.trim(),
+      });
+
+      if (res.success && res.token && res.user) {
+        setRegSuccess(`Registration successful! Your Student ID is ${res.studentId}.`);
+        loginStudent(res.token, res.user);
+        setTimeout(() => {
+          navigate('/student');
+        }, 1200);
+      } else {
+        setRegError(res.message || 'Registration failed. Please try again.');
+      }
+    } catch (err: any) {
+      setRegError('Server connection error. Please try again.');
+    } finally {
+      setRegLoading(false);
     }
   };
 
@@ -149,7 +196,7 @@ export const Login: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-4 shadow-md border border-slate-200 sm:rounded-2xl sm:px-10">
-          {/* Tabs */}
+          {/* Main Role Tabs */}
           <div className="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
             <button
               onClick={() => setActiveTab('student')}
@@ -160,7 +207,7 @@ export const Login: React.FC = () => {
               }`}
             >
               <UserCheck className="w-4 h-4 text-emerald-600" />
-              <span>Student Login</span>
+              <span>Student Portal</span>
             </button>
             <button
               onClick={() => setActiveTab('admin')}
@@ -175,48 +222,164 @@ export const Login: React.FC = () => {
             </button>
           </div>
 
-          {/* Student Login Form */}
+          {/* Student Sub-Tabs (Sign In vs Register) */}
           {activeTab === 'student' && (
-            <form onSubmit={handleStudentLogin} className="space-y-5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                  Assigned Student ID
-                </label>
-                <div className="relative rounded-xl shadow-2xs">
-                  <input
-                    type="text"
-                    value={studentIdInput}
-                    onChange={(e) => setStudentIdInput(e.target.value)}
-                    placeholder="e.g. S001"
-                    className="block w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm font-medium uppercase transition-colors"
-                  />
-                </div>
-                <p className="mt-1.5 text-xs text-slate-400">
-                  Enter the Student ID registered by your administrator.
-                </p>
+            <div className="space-y-5">
+              <div className="flex rounded-lg bg-slate-50 p-1 border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStudentMode('login');
+                    setStudentError('');
+                    setRegError('');
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    studentMode === 'login'
+                      ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Student Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStudentMode('register');
+                    setStudentError('');
+                    setRegError('');
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    studentMode === 'register'
+                      ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  New Registration
+                </button>
               </div>
 
-              {studentError && (
-                <div className="flex items-center space-x-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{studentError}</span>
-                </div>
-              )}
+              {studentMode === 'login' ? (
+                /* Student Login Form */
+                <form onSubmit={handleStudentLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                      Assigned Student ID
+                    </label>
+                    <div className="relative rounded-xl shadow-2xs">
+                      <input
+                        type="text"
+                        value={studentIdInput}
+                        onChange={(e) => setStudentIdInput(e.target.value)}
+                        placeholder="e.g. SL01"
+                        className="block w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm font-medium uppercase transition-colors"
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      Enter your unique Student ID (e.g. SL01, SL02).
+                    </p>
+                  </div>
 
-              <button
-                type="submit"
-                disabled={studentLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
-              >
-                {studentLoading ? 'Authenticating...' : 'Sign In as Student'}
-              </button>
+                  {studentError && (
+                    <div className="flex items-center space-x-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{studentError}</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={studentLoading}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+                  >
+                    {studentLoading ? 'Authenticating...' : 'Sign In as Student'}
+                  </button>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-slate-500">First time here?</span>
+                    <button
+                      type="button"
+                      onClick={() => setStudentMode('register')}
+                      className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                    >
+                      Register as New Student &rarr;
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Student Registration Form */
+                <form onSubmit={handleStudentRegister} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      placeholder="e.g. Dattaji"
+                      className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm font-medium transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={regPhone}
+                      onChange={(e) => setRegPhone(e.target.value)}
+                      placeholder="e.g. 6303169489"
+                      className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm font-medium transition-colors"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      Your unique Student ID (e.g. SL02) will be generated and saved permanently in MongoDB Atlas.
+                    </p>
+                  </div>
+
+                  {regError && (
+                    <div className="flex items-center space-x-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{regError}</span>
+                    </div>
+                  )}
+
+                  {regSuccess && (
+                    <div className="flex items-center space-x-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-medium">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                      <span>{regSuccess}</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={regLoading}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+                  >
+                    {regLoading ? 'Registering...' : 'Register & Enter Portal'}
+                  </button>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-slate-500">Already registered?</span>
+                    <button
+                      type="button"
+                      onClick={() => setStudentMode('login')}
+                      className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                    >
+                      Sign In with Student ID &rarr;
+                    </button>
+                  </div>
+                </form>
+              )}
 
               {/* Student Security Note */}
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 leading-relaxed">
-                <p className="font-medium text-slate-700 mb-0.5">ℹ️ Security Note:</p>
-                Student ID authentication provides direct portal access for rapid exam booking. Institutional SSO or password authentication can be configured.
+                <p className="font-medium text-slate-700 mb-0.5">ℹ️ Permanent Cloud Storage:</p>
+                All student registrations and test bookings are permanently stored in MongoDB Atlas with automated cloud synchronization.
               </div>
-            </form>
+            </div>
           )}
 
           {/* Admin Login Form */}

@@ -4,6 +4,8 @@ import { Student } from '../models/Student.js';
 import { TestSlot } from '../models/TestSlot.js';
 import { Booking } from '../models/Booking.js';
 import { Result } from '../models/Result.js';
+import { Sloka } from '../models/Sloka.js';
+import { StudentAnswer } from '../models/StudentAnswer.js';
 import { isDatabaseConnected } from '../db.js';
 
 const router = Router();
@@ -21,6 +23,8 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
     const totalTestSlots = await TestSlot.countDocuments();
     const totalBookings = await Booking.countDocuments({ status: 'active' });
     const totalResults = await Result.countDocuments();
+    const totalSlokas = await Sloka.countDocuments({ isActive: true });
+    const totalAnswers = await StudentAnswer.countDocuments();
 
     const upcomingTests = await TestSlot.find({ status: { $ne: 'Cancelled' } })
       .sort({ testDate: 1, startTime: 1 })
@@ -34,7 +38,7 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthRequest, r
 
     return res.json({
       success: true,
-      stats: { totalStudents, totalTestSlots, totalBookings, totalResults },
+      stats: { totalStudents, totalTestSlots, totalBookings, totalResults, totalSlokas, totalAnswers },
       upcomingTests,
       recentBookings,
     });

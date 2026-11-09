@@ -4,7 +4,9 @@ import { Student } from '../models/Student.js';
 import { Booking } from '../models/Booking.js';
 import { TestSlot } from '../models/TestSlot.js';
 import { Result } from '../models/Result.js';
+import { StudentAnswer } from '../models/StudentAnswer.js';
 import { isDatabaseConnected } from '../db.js';
+import { getNextStudentId, formatStudentId } from '../utils/studentIdGenerator.js';
 
 const router = Router();
 
@@ -60,18 +62,22 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
 
     const { studentId, name, phone } = req.body;
 
-    if (!studentId || !name || !phone || !phone.trim()) {
-      return res.status(400).json({ success: false, message: 'Student ID, Full Name, and Mobile Number are mandatory.' });
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Student Full Name is mandatory.' });
     }
 
-    const formattedId = studentId.toUpperCase().trim();
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ success: false, message: 'Mobile Number is mandatory.' });
+    }
+
+    let formattedId = studentId && studentId.trim() ? formatStudentId(studentId) : await getNextStudentId();
 
     const existing = await Student.findOne({ studentId: formattedId });
     if (existing) {
       return res.status(400).json({ success: false, message: `Student ID "${formattedId}" already exists.` });
     }
 
-    // Persist to MongoDB
+    // Persist to MongoDB permanently
     const newStudent = await Student.create({
       studentId: formattedId,
       name: name.trim(),
@@ -79,9 +85,11 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
       registrationDate: new Date(),
     });
 
+    console.log(`✅ Admin added student permanently in MongoDB: ${formattedId} (${newStudent.name})`);
+
     return res.status(201).json({
       success: true,
-      message: 'Student added successfully to persistent database.',
+      message: `Student added successfully with ID "${newStudent.studentId}".`,
       student: newStudent,
     });
   } catch (error: any) {
@@ -104,7 +112,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res
 
     const { name, phone } = req.body;
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: 'Student Name is required.' });
     }
 
@@ -138,6 +146,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ success: false, message: 'Student not found in database.' });
 
+    // Release any seats booked by this student
     const activeBookings = await Booking.find({ student: student._id, status: 'active' });
     for (const booking of activeBookings) {
       await TestSlot.findByIdAndUpdate(booking.slot, {
@@ -148,6 +157,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
 
     await Booking.deleteMany({ student: student._id });
     await Result.deleteMany({ student: student._id });
+    await StudentAnswer.deleteMany({ student: student._id });
     await Student.findByIdAndDelete(student._id);
 
     return res.json({

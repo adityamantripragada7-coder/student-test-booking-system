@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: student-test-booking-system
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SETUP_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: '*'
+

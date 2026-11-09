@@ -1,0 +1,259 @@
+{
+  "metadata": {
+    "timestamp": "2026-11-09T11:42:54.800Z",
+    "engine": "MongoDB",
+    "counts": {
+      "students": 1,
+      "bookings": 0,
+      "slots": 0,
+      "results": 1,
+      "admins": 1,
+      "slokas": 6,
+      "answers": 0
+    }
+  },
+  "students": [
+    {
+      "_id": "6ae15fdb458f389c6f216a50",
+      "studentId": "SL01",
+      "name": "Dattaji",
+      "phone": "6303169489",
+      "registrationDate": "2026-10-27T15:07:47.577Z",
+      "createdAt": "2026-10-28T02:37:15.245Z",
+      "updatedAt": "2026-10-28T02:37:15.245Z",
+      "__v": 0
+    }
+  ],
+  "bookings": [],
+  "slots": [],
+  "results": [
+    {
+      "_id": "6ae15fdb458f389c6f216a53",
+      "student": "6ae15fdb458f389c6f216a50",
+      "testName": "1-5",
+      "marksObtained": null,
+      "maxMarks": null,
+      "grade": "A+",
+      "status": "Published",
+      "dateUploaded": "2026-10-27T15:17:08.465Z",
+      "createdAt": "2026-10-28T02:37:15.269Z",
+      "updatedAt": "2026-10-28T02:37:15.269Z",
+      "__v": 0
+    }
+  ],
+  "admins": [
+    {
+      "_id": "6ae15fdb458f389c6f216a4b",
+      "username": "admin",
+      "email": "admin@institution.edu",
+      "passwordHash": "$2a$10$m4DWF81bYTGKACQMl8TKgeLiNotXpd4mhRM4dMeea2j7uhxgCMJQ.",
+      "name": "System Administrator",
+      "createdAt": "2026-10-28T02:37:15.139Z",
+      "updatedAt": "2026-10-28T02:37:15.139Z",
+      "__v": 0
+    }
+  ],
+  "slokas": [
+    {
+      "_id": "6af1b0071a74ec821ef1c29a",
+      "syllabus": "1-5",
+      "chapter": 2,
+      "slokaNumber": 47,
+      "title": "Karmanyevadhikaraste (Chapter 2, Verse 47)",
+      "sanskritText": "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
+      "transliteration": "karmaṇy-evādhikāras te mā phaleṣu kadācana |\nmā karma-phala-hetur bhūr mā te saṅgo 'stvakarmaṇi ||",
+      "englishMeaning": "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself the cause of the results of your activities, nor be attached to inaction.",
+      "questions": [
+        {
+          "questionText": "According to Bhagavad Gita 2.47, what does one have the primary right to?",
+          "options": [
+            "The fruits of action",
+            "The performance of duty/action",
+            "Renouncing all work completely",
+            "Directing other people"
+          ],
+          "correctOptionIndex": 1,
+          "explanation": "Karmaṇy-evādhikāras te translates to \"You have a right only to work/duty\".",
+          "marks": 10,
+          "_id": "6af1b0071a74ec821ef1c29b"
+        },
+        {
+          "questionText": "What attitude towards inaction (akarmaṇi) is advised in this verse?",
+          "options": [
+            "Attachment to inaction",
+            "No attachment to inaction",
+            "Inaction is superior to action",
+            "Avoid all duties"
+          ],
+          "correctOptionIndex": 1,
+          "explanation": "The verse states \"mā te saṅgo 'stvakarmaṇi\" — do not be attached to inaction.",
+          "marks": 10,
+          "_id": "6af1b0071a74ec821ef1c29c"
+        }
+      ],
+      "isActive": true,
+      "__v": 0,
+      "createdAt": "2026-11-09T11:35:36.020Z",
+      "updatedAt": "2026-11-09T11:35:36.020Z"
+    },
+    {
+      "_id": "6af1b0071a74ec821ef1c29d",
+      "syllabus": "1-5",
+      "chapter": 4,
+      "slokaNumber": 7,
+      "title": "Yada Yada Hi Dharmasya (Chapter 4, Verse 7)",
+      "sanskritText": "यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥",
+      "transliteration": "yadā yadā hi dharmasya glānir bhavati bhārata |\nabhyutthānam adharmasya tadātmānaṁ sṛjāmy aham ||",
+      "englishMeaning": "Whenever and wherever there is a decline in religious practice, O descendant of Bharata, and a predominant rise of irreligion—at that time I descend Myself.",
+      "questions": [
+        {
+          "questionText": "When does the Lord descend according to Chapter 4, Verse 7?",
+          "options": [
+            "Whenever there is a decline in Dharma and rise in Adharma",
+            "Only once every millennium",
+            "When wealth diminishes",
+            "At the beginning of every spring season"
+          ],
+          "correctOptionIndex": 0,
+          "explanation": "Yadā yadā hi dharmasya glānir bhavati indicates whenever Dharma declines.",
+          "marks": 10,
+          "_id": "6af1b0071a74ec821ef1c29e"
+        },
+        {
+          "questionText": "What does the word \"Glāniḥ\" signify in this sloka?",
+          "options": [
+            "Victory",
+            "Decline or decay",
+            "Celebration",
+            "Wealth"
+          ],
+          "correctOptionIndex": 1,
+          "explanation": "Glānir means decline or degeneration of Dharma.",
+          "marks": 10,
+          "_id": "6af1b0071a74ec821ef1c29f"
+        }
+      ],
+      "isActive": true,
+      "__v": 0,
+      "createdAt": "2026-11-09T11:35:36.024Z",
+      "updatedAt": "2026-11-09T11:35:36.024Z"
+    },
+    {
+      "_id": "6af1b0071a74ec821ef1c2a0",
+      "syllabus": "1-5",
+      "chapter": 4,
+      "slokaNumber": 8,
+      "title": "Paritranaya Sadhunam (Chapter 4, Verse 8)",
+      "sanskritText": "परित्राणाय साधूनां विनाशाय च दुष्कृताम्।\nधर्मसंस्थापनार्थाय सम्भवामि युगे युगे॥",
+      "transliteration": "paritrāṇāya sādhūnāṁ vināśāya ca duṣkṛtām |\ndharma-saṁsthāpanārthāya sambhavāmi yuge yuge ||",
+      "englishMeaning": "To deliver the pious and to annihilate the miscreants, as well as to reestablish the principles of religion, I appear millenium after millenium.",
+      "questions": [
+        {
+          "questionText": "What is the triple purpose of divine descent in this sloka?",
+          "options": [
+            "Protect the virtuous, eliminate wrongdoers, re-establish righteousness",
+            "Accumulate power, rule kingdoms, punish citizens",
+            "Build temples, write scriptures, conduct debates",
+            "Travel the worlds, test devotion, grant wealth"
+          ],
+          "correctOptionIndex": 0,
+          "explanation": "Paritrāṇāya sādhūnāṁ, vināśāya duṣkṛtām, dharma-saṁsthāpanārthāya.",
+          "marks": 10,
+          "_id": "6af1b0081a74ec821ef1c2a1"
+        }
+      ],
+      "isActive": true,
+      "__v": 0,
+      "createdAt": "2026-11-09T11:35:36.024Z",
+      "updatedAt": "2026-11-09T11:35:36.024Z"
+    },
+    {
+      "_id": "6af1b0081a74ec821ef1c2a2",
+      "syllabus": "6-10",
+      "chapter": 9,
+      "slokaNumber": 26,
+      "title": "Patram Pushpam Phalam Toyam (Chapter 9, Verse 26)",
+      "sanskritText": "पत्रं पुष्पं फलं तोयं यो मे भक्त्या प्रयच्छति।\nतदहं भक्त्युपहृतमश्नामि प्रयतात्मनः॥",
+      "transliteration": "patraṁ puṣpaṁ phalaṁ toyaṁ yo me bhaktyā prayacchati |\ntad ahaṁ bhakty-upahṛtam aśnāmi prayatātmanaḥ ||",
+      "englishMeaning": "If one offers Me with love and devotion a leaf, a flower, a fruit or water, I will accept it.",
+      "questions": [
+        {
+          "questionText": "What key ingredient makes an offering acceptable according to Chapter 9 Verse 26?",
+          "options": [
+            "Costly jewels and gold",
+            "Bhakti (Love and pure devotion)",
+            "Elaborate rituals",
+            "Loud singing"
+          ],
+          "correctOptionIndex": 1,
+          "explanation": "Yo me bhaktyā prayacchati — offered with sincere devotion.",
+          "marks": 10,
+          "_id": "6af1b0081a74ec821ef1c2a3"
+        }
+      ],
+      "isActive": true,
+      "__v": 0,
+      "createdAt": "2026-11-09T11:35:36.024Z",
+      "updatedAt": "2026-11-09T11:35:36.024Z"
+    },
+    {
+      "_id": "6af1b0081a74ec821ef1c2a4",
+      "syllabus": "6-10",
+      "chapter": 9,
+      "slokaNumber": 22,
+      "title": "Ananyas Chintayanto Mam (Chapter 9, Verse 22)",
+      "sanskritText": "अनन्याश्चिन्तयन्तो मां ये जनाः पर्युपासते।\nतेषां नित्याभियुक्तानां योगक्षेमं वहाम्यहम्॥",
+      "transliteration": "ananyāś cintayanto māṁ ye janāḥ paryupāsate |\nteṣāṁ nityābhiyuktānāṁ yoga-kṣemaṁ vahāmy aham ||",
+      "englishMeaning": "To those who are constantly devoted and who meditate on My transcendental form, I supply what they lack and preserve what they have.",
+      "questions": [
+        {
+          "questionText": "What does \"Yoga-Kṣemam\" refer to in Chapter 9, Verse 22?",
+          "options": [
+            "Providing what is needed and preserving what is acquired",
+            "Physical yogic postures only",
+            "Ascetic retreat into forests",
+            "Material prosperity through trade"
+          ],
+          "correctOptionIndex": 0,
+          "explanation": "Yoga means acquiring necessary goods and Kshema means safeguarding what has been attained.",
+          "marks": 10,
+          "_id": "6af1b0081a74ec821ef1c2a5"
+        }
+      ],
+      "isActive": true,
+      "__v": 0,
+      "createdAt": "2026-11-09T11:35:36.025Z",
+      "updatedAt": "2026-11-09T11:35:36.025Z"
+    },
+    {
+      "_id": "6af1b0081a74ec821ef1c2a6",
+      "syllabus": "Monthly test-1",
+      "chapter": 18,
+      "slokaNumber": 65,
+      "title": "Manmana Bhava Madbhakto (Chapter 18, Verse 65)",
+      "sanskritText": "मन्मना भव मद्भक्तो मद्याजी मां नमस्कुरु।\nमामेवैष्यसि सत्यं ते प्रतिजाने प्रियोऽसि मे॥",
+      "transliteration": "man-manā bhava mad-bhakto mad-yājī māṁ namaskuru |\nmām evaiṣyasi satyaṁ te pratijāne priyo 'si me ||",
+      "englishMeaning": "Always think of Me, become My devotee, worship Me and offer your homage unto Me. Thus you will come to Me without fail. I promise you this because you are My very dear friend.",
+      "questions": [
+        {
+          "questionText": "What four practices are outlined in Chapter 18, Verse 65?",
+          "options": [
+            "Fix mind on the Divine, become devoted, worship, offer obeisance",
+            "Fast, chant, wander, renounce speech",
+            "Study history, argue, defend, conquer",
+            "Give charity, construct monuments, memorize words, isolate"
+          ],
+          "correctOptionIndex": 0,
+          "explanation": "Man-manā (think of Me), mad-bhakto (be My devotee), mad-yājī (worship Me), māṁ namaskuru (bow to Me).",
+          "marks": 10,
+          "_id": "6af1b0081a74ec821ef1c2a7"
+        }
+      ],
+      "isActive": true,
+      "__v": 0,
+      "createdAt": "2026-11-09T11:35:36.025Z",
+      "updatedAt": "2026-11-09T11:35:36.025Z"
+    }
+  ],
+  "answers": []
+}

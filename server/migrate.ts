@@ -6,13 +6,20 @@ import { Result } from './models/Result.js';
 import { TestSlot } from './models/TestSlot.js';
 
 export async function migrateExistingData(): Promise<void> {
-  const dataFile = path.resolve(process.cwd(), 'data', 'db.json');
-  if (!fs.existsSync(dataFile)) {
+  const primaryDataFile = path.resolve(process.cwd(), 'data', 'db.json');
+  const backupDataFile = path.resolve(process.cwd(), 'data', 'backups', 'db-backup-original.json');
+
+  let targetFile = '';
+  if (fs.existsSync(primaryDataFile)) {
+    targetFile = primaryDataFile;
+  } else if (fs.existsSync(backupDataFile)) {
+    targetFile = backupDataFile;
+  } else {
     return;
   }
 
   try {
-    const raw = fs.readFileSync(dataFile, 'utf-8');
+    const raw = fs.readFileSync(targetFile, 'utf-8');
     const data = JSON.parse(raw);
 
     // 1. Preserve and Migrate Admins
@@ -57,8 +64,10 @@ export async function migrateExistingData(): Promise<void> {
     if (Array.isArray(data.results)) {
       for (const resultData of data.results) {
         if (!resultData.testName) continue;
-        const targetStudent = oldIdToMongoDoc.get(resultData.student) || 
-                              await Student.findOne({ studentId: 'SL01' });
+        const targetStudent =
+          oldIdToMongoDoc.get(resultData.student) ||
+          (await Student.findOne({ studentId: 'SL01' }));
+
         if (targetStudent) {
           const exists = await Result.findOne({
             student: targetStudent._id,

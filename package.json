@@ -11,7 +11,10 @@
     "lint": "tsc --noEmit",
     "preview": "vite preview",
     "start": "tsx server/server.ts",
-    "test:db": "tsx server/scripts/test-db.ts"
+    "test:db": "tsx server/scripts/test-db.ts",
+    "test:prod": "tsx server/scripts/test-production-suite.ts",
+    "backup:db": "tsx server/scripts/backup-db.ts",
+    "restore:db": "tsx server/scripts/restore-db.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

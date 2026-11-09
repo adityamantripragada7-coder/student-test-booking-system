@@ -18,25 +18,32 @@ const StudentSchema = new Schema<IStudent>(
       uppercase: true,
       trim: true,
       immutable: true, // Prevents studentId modification after creation
+      index: true,
     },
     name: {
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     phone: {
       type: String,
       trim: true,
       default: '',
+      index: true,
     },
     registrationDate: {
       type: Date,
       default: Date.now,
+      index: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+// Compound text/sorting indexes
+StudentSchema.index({ createdAt: -1 });
 
 export const Student = model<IStudent>('Student', StudentSchema);

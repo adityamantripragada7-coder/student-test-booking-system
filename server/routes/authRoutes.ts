@@ -5,6 +5,7 @@ import { Admin } from '../models/Admin.js';
 import { Student } from '../models/Student.js';
 import { authenticateToken, AuthRequest, getJwtSecret } from '../middleware/auth.js';
 import { isDatabaseConnected } from '../db.js';
+import { getNextStudentId, formatStudentId } from '../utils/studentIdGenerator.js';
 
 const router = Router();
 
@@ -129,6 +130,104 @@ router.post('/admin/login', async (req: Request, res: Response) => {
   }
 });
 
+// Student Self-Registration (Public)
+router.post('/student/register', async (req: Request, res: Response) => {
+  try {
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Persistent database is not connected. Student registration cannot be completed right now. Please try again shortly.',
+      });
+    }
+
+    const { name, phone, studentId } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Full name is required.' });
+    }
+
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ success: false, message: 'Mobile number is required.' });
+    }
+
+    const trimmedPhone = phone.trim();
+    const trimmedName = name.trim();
+
+    // Check if a student with the exact same phone already exists
+    const existingWithPhone = await Student.findOne({ phone: trimmedPhone });
+    if (existingWithPhone) {
+      // Return student ID so they can log in directly
+      return res.status(409).json({
+        success: false,
+        message: `A student is already registered with mobile number ${trimmedPhone}. Your Student ID is "${existingWithPhone.studentId}". Please log in.`,
+        existingStudentId: existingWithPhone.studentId,
+      });
+    }
+
+    // Determine student ID: generate automatically if not specified
+    let assignedId = studentId ? formatStudentId(studentId) : await getNextStudentId();
+
+    // In case of any concurrent collision, retry up to 5 times
+    let createdStudent: any = null;
+    let attempts = 0;
+    while (!createdStudent && attempts < 5) {
+      try {
+        const collisionCheck = await Student.findOne({ studentId: assignedId });
+        if (collisionCheck) {
+          assignedId = await getNextStudentId();
+        }
+
+        createdStudent = await Student.create({
+          studentId: assignedId,
+          name: trimmedName,
+          phone: trimmedPhone,
+          registrationDate: new Date(),
+        });
+      } catch (err: any) {
+        if (err.code === 11000) {
+          attempts++;
+          assignedId = await getNextStudentId();
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (!createdStudent) {
+      return res.status(500).json({
+        success: false,
+        message: 'Could not allocate a unique Student ID due to high concurrent traffic. Please try again.',
+      });
+    }
+
+    console.log(`✅ Permanently registered new student in MongoDB: ${createdStudent.studentId} (${createdStudent.name})`);
+
+    const token = jwt.sign(
+      { id: createdStudent._id, role: 'student', studentId: createdStudent.studentId, name: createdStudent.name },
+      getJwtSecret(),
+      { expiresIn: '7d' }
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: `Registration successful! Your assigned Student ID is ${createdStudent.studentId}.`,
+      token,
+      studentId: createdStudent.studentId,
+      user: {
+        id: createdStudent._id,
+        role: 'student',
+        studentId: createdStudent.studentId,
+        name: createdStudent.name,
+        phone: createdStudent.phone,
+        registrationDate: createdStudent.registrationDate,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error during student registration:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Internal server error during registration.' });
+  }
+});
+
 // Student Login
 router.post('/student/login', async (req: Request, res: Response) => {
   try {
@@ -141,17 +240,17 @@ router.post('/student/login', async (req: Request, res: Response) => {
 
     const { studentId } = req.body;
 
-    if (!studentId) {
+    if (!studentId || !studentId.trim()) {
       return res.status(400).json({ success: false, message: 'Student ID is required.' });
     }
 
-    const formattedId = studentId.toUpperCase().trim();
+    const formattedId = formatStudentId(studentId);
 
     const student = await Student.findOne({ studentId: formattedId });
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: `Student ID "${formattedId}" not found in database.`,
+        message: `Student ID "${formattedId}" not found in database. Please verify your ID or register as a new student.`,
       });
     }
 

@@ -24,6 +24,7 @@ const TestSlotSchema = new Schema<ITestSlot>(
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     startTime: {
       type: String,
@@ -49,6 +50,7 @@ const TestSlotSchema = new Schema<ITestSlot>(
       type: String,
       enum: ['Available', 'Full', 'Cancelled'],
       default: 'Available',
+      index: true,
     },
     location: {
       type: String,
@@ -60,5 +62,8 @@ const TestSlotSchema = new Schema<ITestSlot>(
     timestamps: true,
   }
 );
+
+TestSlotSchema.index({ testDate: 1, startTime: 1 });
+TestSlotSchema.index({ status: 1, testDate: 1 });
 
 export const TestSlot = model<ITestSlot>('TestSlot', TestSlotSchema);

@@ -84,11 +84,6 @@ export const AdminStudents: React.FC = () => {
       return;
     }
 
-    if (!editingStudent && !studentIdInput.trim()) {
-      setFormError('Student ID is required.');
-      return;
-    }
-
     if (!phoneInput.trim()) {
       setFormError('Mobile number is mandatory.');
       return;
@@ -113,7 +108,7 @@ export const AdminStudents: React.FC = () => {
       } else {
         // Add mode
         const res = await api.post('/students', {
-          studentId: studentIdInput.trim(),
+          studentId: studentIdInput.trim() || undefined,
           name: nameInput.trim(),
           phone: phoneInput.trim(),
         });
@@ -282,17 +277,21 @@ export const AdminStudents: React.FC = () => {
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Student ID {editingStudent && '(Immutable)'}
+              Student ID {editingStudent ? '(Immutable)' : '(Optional - Auto-generated if left blank)'}
             </label>
             <input
               type="text"
-              required
               disabled={!!editingStudent}
               value={studentIdInput}
               onChange={(e) => setStudentIdInput(e.target.value.toUpperCase())}
-              placeholder="e.g. S001"
+              placeholder="e.g. SL02 (or leave blank to auto-assign)"
               className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm uppercase font-mono focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-slate-100 text-slate-900"
             />
+            {!editingStudent && (
+              <p className="mt-1 text-[11px] text-slate-400">
+                Leave blank to automatically assign the next sequential ID in the series (e.g. SL02).
+              </p>
+            )}
           </div>
 
           <div>

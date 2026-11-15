@@ -18,7 +18,7 @@ export interface Student {
   createdAt: string;
 }
 
-export type GradeType = 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'Retest';
+export type GradeType = 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'Retest';
 
 export interface TestSlot {
   _id: string;
@@ -47,12 +47,35 @@ export interface Booking {
 export interface Result {
   _id: string;
   student: Student | string;
+  booking?: Booking | string;
+  slot?: TestSlot | string;
   testName: string;
-  marksObtained?: number | null;
-  maxMarks?: number | null;
-  grade: GradeType;
-  status?: string;
+  memoryGrade: GradeType;
+  mistakesGrade: GradeType;
+  grade?: GradeType;
+  status: string;
   dateUploaded: string;
+}
+
+export interface BookedStudentRecord {
+  bookingId: string;
+  studentDbId: string;
+  studentId: string;
+  studentName: string;
+  studentPhone?: string;
+  slotId: string;
+  slotTitle: string;
+  slotDate: string;
+  slotTime: string;
+  slotLocation?: string;
+  syllabus: string;
+  bookingDate: string;
+  bookingStatus: string;
+  resultId?: string | null;
+  resultStatus: 'Published' | 'Pending';
+  memoryGrade?: GradeType | null;
+  mistakesGrade?: GradeType | null;
+  dateUploaded?: string | null;
 }
 
 export interface Question {

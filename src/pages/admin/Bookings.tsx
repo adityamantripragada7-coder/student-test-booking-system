@@ -25,7 +25,7 @@ import {
   Phone,
 } from 'lucide-react';
 
-const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'Retest'];
+const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'Retest'];
 
 export const formatTimeDisplay = (timeStr?: string): string => {
   if (!timeStr) return 'Unscheduled Time';
@@ -63,9 +63,8 @@ export const AdminBookings: React.FC = () => {
   const [resultStudentId, setResultStudentId] = useState('');
   const [resultStudentName, setResultStudentName] = useState('');
   const [resultTestName, setResultTestName] = useState('');
-  const [resultGrade, setResultGrade] = useState<GradeType>('A+');
-  const [resultMarks, setResultMarks] = useState<number | ''>('');
-  const [resultMaxMarks, setResultMaxMarks] = useState<number | ''>('');
+  const [resultMemoryGrade, setResultMemoryGrade] = useState<GradeType | ''>('');
+  const [resultMistakesGrade, setResultMistakesGrade] = useState<GradeType | ''>('');
   const [resultFormError, setResultFormError] = useState('');
   const [resultLoading, setResultLoading] = useState(false);
 
@@ -210,17 +209,15 @@ export const AdminBookings: React.FC = () => {
       : `${syllabusName}`;
     setResultTestName(defaultTestName);
 
-    // If an existing result exists, prefill its grade/marks
+    // If an existing result exists, prefill its Memory/Mistakes grades
     const existing = student ? resultsByStudentId[student.studentId.toUpperCase()] : null;
     if (existing) {
-      setResultGrade(existing.grade);
-      setResultMarks(existing.marksObtained ?? '');
-      setResultMaxMarks(existing.maxMarks ?? '');
+      setResultMemoryGrade(existing.memoryGrade || existing.grade || '');
+      setResultMistakesGrade(existing.mistakesGrade || existing.grade || '');
       setResultTestName(existing.testName);
     } else {
-      setResultGrade('A+');
-      setResultMarks('');
-      setResultMaxMarks('');
+      setResultMemoryGrade('');
+      setResultMistakesGrade('');
     }
 
     setResultFormError('');
@@ -237,23 +234,9 @@ export const AdminBookings: React.FC = () => {
       return;
     }
 
-    if (!resultGrade || !GRADE_OPTIONS.includes(resultGrade)) {
-      setResultFormError('Please select a required Grade (A+, A, B+, B, C+, C, Retest).');
-      return;
-    }
-
-    if (resultMarks !== '' && Number(resultMarks) < 0) {
-      setResultFormError('Marks obtained cannot be negative.');
-      return;
-    }
-
-    if (resultMaxMarks !== '' && Number(resultMaxMarks) <= 0) {
-      setResultFormError('Max marks must be greater than 0.');
-      return;
-    }
-
-    if (resultMarks !== '' && resultMaxMarks !== '' && Number(resultMarks) > Number(resultMaxMarks)) {
-      setResultFormError('Marks obtained cannot exceed maximum marks.');
+    // MANDATORY VALIDATION: Both Memory and Mistakes are compulsory
+    if (!resultMemoryGrade || !resultMistakesGrade) {
+      setResultFormError('Please provide both mandatory results: Memory and Mistakes.');
       return;
     }
 
@@ -261,17 +244,19 @@ export const AdminBookings: React.FC = () => {
     try {
       const payload = {
         studentId: resultStudentId.trim().toUpperCase(),
+        bookingId: resultTargetBooking?._id,
+        slotId: typeof resultTargetBooking?.slot === 'object' ? (resultTargetBooking.slot as any)._id : resultTargetBooking?.slot,
         testName: resultTestName.trim(),
-        marksObtained: resultMarks === '' ? null : Number(resultMarks),
-        maxMarks: resultMaxMarks === '' ? null : Number(resultMaxMarks),
-        grade: resultGrade,
+        memoryGrade: resultMemoryGrade,
+        mistakesGrade: resultMistakesGrade,
+        status: 'Published',
       };
 
       const res = await api.post('/results', payload);
       if (res.success) {
         setNotification({
           type: 'success',
-          message: `Result (${resultGrade}) published successfully for ${resultStudentName} (${resultStudentId})!`,
+          message: `Results (Memory: ${resultMemoryGrade}, Mistakes: ${resultMistakesGrade}) published successfully for ${resultStudentName}!`,
         });
         setShowResultModal(false);
         fetchBookings(pagination.page);
@@ -531,7 +516,7 @@ export const AdminBookings: React.FC = () => {
                               <span className="text-slate-300">•</span>
                               <span className="inline-flex items-center space-x-1 font-semibold text-emerald-700">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>Published: Grade {existingResult.grade}</span>
+                                <span>Published: Mem: {existingResult.memoryGrade || existingResult.grade} | Mist: {existingResult.mistakesGrade || existingResult.grade}</span>
                               </span>
                             </>
                           )}
@@ -640,7 +625,7 @@ export const AdminBookings: React.FC = () => {
                     </p>
                     {existingResult && (
                       <p className="text-[11px] font-semibold text-emerald-700">
-                        ✓ Published Grade: {existingResult.grade}
+                        ✓ Published: Mem: {existingResult.memoryGrade || existingResult.grade} | Mist: {existingResult.mistakesGrade || existingResult.grade}
                       </p>
                     )}
                   </div>
@@ -768,7 +753,7 @@ export const AdminBookings: React.FC = () => {
                             }`}
                           >
                             <Award className="w-3.5 h-3.5" />
-                            <span>{existingResult ? `Grade: ${existingResult.grade}` : 'Post Result'}</span>
+                            <span>{existingResult ? `Mem: ${existingResult.memoryGrade || existingResult.grade} | Mist: ${existingResult.mistakesGrade || existingResult.grade}` : 'Post Result'}</span>
                           </button>
 
                           {booking.status === 'active' && (
@@ -827,23 +812,28 @@ export const AdminBookings: React.FC = () => {
             />
           </div>
 
-          {/* Grade - Required */}
-          <div className="p-3.5 bg-brand-50/40 rounded-xl border border-brand-100 space-y-2">
+          {/* MANDATORY CATEGORY A: MEMORY ⭐ */}
+          <div className="p-3.5 bg-gradient-to-br from-amber-50/40 to-slate-50 rounded-xl border border-amber-200/80 space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-900">
-                Grade <span className="text-rose-600">* Required</span>
+              <label className="text-xs font-bold text-slate-900 flex items-center space-x-1">
+                <span>MEMORY</span>
+                <span className="text-amber-500 font-bold">⭐</span>
+                <span className="text-rose-600 font-bold ml-1">* Compulsory</span>
               </label>
               <span className="text-[11px] text-slate-500">Pick one grade</span>
             </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 pt-1">
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 pt-1">
               {GRADE_OPTIONS.map((g) => {
-                const isSelected = resultGrade === g;
+                const isSelected = resultMemoryGrade === g;
                 return (
                   <button
                     key={g}
                     type="button"
-                    onClick={() => setResultGrade(g)}
+                    onClick={() => {
+                      setResultMemoryGrade(g);
+                      setResultFormError('');
+                    }}
                     className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition-all ${
                       isSelected
                         ? g === 'Retest'
@@ -861,38 +851,42 @@ export const AdminBookings: React.FC = () => {
             </div>
           </div>
 
-          {/* Marks - Optional */}
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+          {/* MANDATORY CATEGORY B: MISTAKES ⭐ */}
+          <div className="p-3.5 bg-gradient-to-br from-indigo-50/40 to-slate-50 rounded-xl border border-indigo-200/80 space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-slate-700">
-                Marks <span className="text-slate-400 font-normal">(Optional)</span>
+              <label className="text-xs font-bold text-slate-900 flex items-center space-x-1">
+                <span>MISTAKES</span>
+                <span className="text-amber-500 font-bold">⭐</span>
+                <span className="text-rose-600 font-bold ml-1">* Compulsory</span>
               </label>
-              <span className="text-[11px] text-slate-400">Leave blank if not applicable</span>
+              <span className="text-[11px] text-slate-500">Pick one grade</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500 mb-1">Marks Obtained</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={resultMarks}
-                  onChange={(e) => setResultMarks(e.target.value === '' ? '' : Number(e.target.value))}
-                  placeholder="Optional (e.g. 85)"
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500 mb-1">Maximum Marks</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={resultMaxMarks}
-                  onChange={(e) => setResultMaxMarks(e.target.value === '' ? '' : Number(e.target.value))}
-                  placeholder="Optional (e.g. 100)"
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-                />
-              </div>
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 pt-1">
+              {GRADE_OPTIONS.map((g) => {
+                const isSelected = resultMistakesGrade === g;
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => {
+                      setResultMistakesGrade(g);
+                      setResultFormError('');
+                    }}
+                    className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition-all ${
+                      isSelected
+                        ? g === 'Retest'
+                          ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-600/30 scale-102'
+                          : 'bg-brand-600 text-white shadow-sm ring-2 ring-brand-600/30 scale-102'
+                        : g === 'Retest'
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -913,8 +907,8 @@ export const AdminBookings: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={resultLoading}
-              className="px-5 py-2.5 text-xs font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 active:scale-98 shadow-xs disabled:opacity-50 transition-all"
+              disabled={resultLoading || !resultMemoryGrade || !resultMistakesGrade}
+              className="px-5 py-2.5 text-xs font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 active:scale-98 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {resultLoading ? 'Publishing...' : 'Publish Result'}
             </button>

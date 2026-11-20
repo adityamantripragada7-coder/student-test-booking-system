@@ -30,7 +30,6 @@ const ResultSchema = new Schema<IResult>(
     booking: {
       type: Schema.Types.ObjectId,
       ref: 'Booking',
-      index: true,
     },
     slot: {
       type: Schema.Types.ObjectId,

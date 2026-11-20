@@ -4,8 +4,17 @@ import { Result } from '../../types';
 import { Badge } from '../../components/Badge';
 import { TableSkeleton } from '../../components/Skeleton';
 import { EmptyState } from '../../components/EmptyState';
-import { Award, AlertCircle, BookOpen, Star, CalendarDays, Clock, CheckCircle2 } from 'lucide-react';
-import { formatTimeDisplay } from '../admin/Bookings';
+import {
+  Award,
+  AlertCircle,
+  BookOpen,
+  Star,
+  CalendarDays,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+  Percent,
+} from 'lucide-react';
 
 export const StudentMyResults: React.FC = () => {
   const [latestResult, setLatestResult] = useState<Result | null>(null);
@@ -44,11 +53,11 @@ export const StudentMyResults: React.FC = () => {
         <div>
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-600 mb-1">
             <Award className="w-4 h-4" />
-            <span>Academic Assessment</span>
+            <span>Academic Performance Records</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">My Examination Results</h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Official evaluations for Memory ⭐ and Mistakes ⭐ categories across your booked test sessions.
+            Official evaluations and assessment grades across your completed examination sessions.
           </p>
         </div>
         <div className="shrink-0 flex items-center space-x-2 bg-slate-50 px-3.5 py-2 rounded-2xl border border-slate-200/60">
@@ -64,7 +73,7 @@ export const StudentMyResults: React.FC = () => {
         </div>
       )}
 
-      {/* Latest Result Card (Featured) */}
+      {/* Latest Result Card (Featured Hero) */}
       {latestResult && (
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-white/10 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-white/10">
@@ -83,9 +92,17 @@ export const StudentMyResults: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-300">
                 Published on {new Date(latestResult.dateUploaded).toLocaleDateString()}
               </p>
+              {latestResult.marksObtained !== null && latestResult.marksObtained !== undefined && (
+                <div className="pt-2 flex items-center space-x-3 text-xs sm:text-sm">
+                  <span className="text-slate-300">Score Awarded:</span>
+                  <span className="font-bold text-amber-300 text-base">
+                    {latestResult.marksObtained} {latestResult.maxMarks ? `/ ${latestResult.maxMarks}` : ''}
+                  </span>
+                </div>
+              )}
             </div>
 
-            {/* TWO MANDATORY RESULT CATEGORIES */}
+            {/* Performance Grade Categories */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 shrink-0">
               {/* Category A: MEMORY */}
               <div className="bg-white/10 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/15 space-y-2 min-w-[130px] sm:min-w-[150px]">
@@ -94,7 +111,7 @@ export const StudentMyResults: React.FC = () => {
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-                  {latestResult.memoryGrade || latestResult.grade || '—'}
+                  {latestResult.grade || '—'}
                 </div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-300 block">
                   Compulsory Category
@@ -108,7 +125,7 @@ export const StudentMyResults: React.FC = () => {
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-                  {latestResult.mistakesGrade || latestResult.grade || '—'}
+                  {latestResult.grade || '—'}
                 </div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-300 block">
                   Compulsory Category
@@ -123,7 +140,7 @@ export const StudentMyResults: React.FC = () => {
       {history.length === 0 ? (
         <EmptyState
           title="Results are not yet published"
-          description="Your test results have not been published by the administration yet. Once published, your Memory and Mistakes grades will appear here."
+          description="Your examination results have not been published by the administration yet. Once published, your evaluations and grades will appear here."
         />
       ) : (
         <div className="space-y-4">
@@ -132,7 +149,7 @@ export const StudentMyResults: React.FC = () => {
             <span className="text-xs text-slate-400">Isolated & Private to Your Account</span>
           </div>
 
-          {/* Mobile Card View (optimized for smartphones) */}
+          {/* Mobile Card View (Optimized for smartphones 360px - 430px) */}
           <div className="grid grid-cols-1 gap-3 sm:hidden">
             {history.map((r) => (
               <div
@@ -159,7 +176,7 @@ export const StudentMyResults: React.FC = () => {
                       <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </div>
                     <div className="pt-0.5">
-                      <Badge status={r.memoryGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
+                      <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
                     </div>
                   </div>
 
@@ -169,21 +186,30 @@ export const StudentMyResults: React.FC = () => {
                       <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </div>
                     <div className="pt-0.5">
-                      <Badge status={r.mistakesGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
+                      <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
                     </div>
                   </div>
                 </div>
+
+                {r.marksObtained !== null && r.marksObtained !== undefined && (
+                  <div className="flex items-center justify-between text-xs text-slate-600 pt-2 border-t border-slate-100">
+                    <span>Marks:</span>
+                    <span className="font-bold text-slate-900">
+                      {r.marksObtained} {r.maxMarks ? `/ ${r.maxMarks}` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
-          {/* Desktop Table View */}
+          {/* Desktop & Tablet Table View */}
           <div className="hidden sm:block bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-slate-50/80 text-slate-500 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200/80">
                   <tr>
-                    <th className="px-6 py-4">Assessment / Slot</th>
+                    <th className="px-6 py-4">Assessment / Module</th>
                     <th className="px-6 py-4">
                       <span className="flex items-center space-x-1">
                         <span>Memory Grade</span>
@@ -196,6 +222,7 @@ export const StudentMyResults: React.FC = () => {
                         <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                       </span>
                     </th>
+                    <th className="px-6 py-4">Marks (If applicable)</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4 text-right">Published Date</th>
                   </tr>
@@ -210,10 +237,15 @@ export const StudentMyResults: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <Badge status={r.memoryGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
+                        <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
                       </td>
                       <td className="px-6 py-4">
-                        <Badge status={r.mistakesGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
+                        <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
+                      </td>
+                      <td className="px-6 py-4 font-medium text-slate-800">
+                        {r.marksObtained !== null && r.marksObtained !== undefined
+                          ? `${r.marksObtained}${r.maxMarks ? ` / ${r.maxMarks}` : ''}`
+                          : '—'}
                       </td>
                       <td className="px-6 py-4">
                         <Badge status={r.status || 'Published'} className="text-xs px-2.5 py-0.5" />

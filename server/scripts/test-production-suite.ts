@@ -193,6 +193,8 @@ async function runProductionTests() {
     const studentResultRecord = await Result.create({
       student: student1._id,
       testName: 'Bhagavad Gita Sloka Assessment (1-5)',
+      memoryGrade: 'A+',
+      mistakesGrade: 'A+',
       marksObtained: expectedScore,
       maxMarks: expectedMax,
       grade: 'A+',

@@ -1,10 +1,12 @@
 import { Student } from '../models/Student.js';
+import { Counter } from '../models/Counter.js';
 
 /**
  * Generates the next sequential unique Student ID in the SL-format (e.g. SL01, SL02, ... SL12, etc.)
- * Scans all existing students in MongoDB to determine the highest number currently in use.
+ * Uses an atomic MongoDB Counter synchronized with existing records to prevent race conditions.
  */
 export async function getNextStudentId(): Promise<string> {
+  // Scan existing students to guarantee the counter is never lower than any existing SL-number
   const students = await Student.find({}, { studentId: 1 }).lean();
   let maxNum = 0;
 
@@ -19,7 +21,24 @@ export async function getNextStudentId(): Promise<string> {
     }
   }
 
-  const nextNum = maxNum + 1;
+  // Ensure counter document exists and is at least maxNum
+  const currentDoc = await Counter.findById('studentId');
+  if (!currentDoc || currentDoc.seq < maxNum) {
+    await Counter.findByIdAndUpdate(
+      'studentId',
+      { $max: { seq: maxNum } },
+      { upsert: true }
+    );
+  }
+
+  // Atomically increment counter
+  const counter = await Counter.findByIdAndUpdate(
+    'studentId',
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+
+  const nextNum = counter.seq;
   // Pad with leading zero for numbers under 10 (e.g. SL01, SL02... SL09, SL10, SL11...)
   const formattedNext = nextNum < 10 ? `SL0${nextNum}` : `SL${nextNum}`;
   return formattedNext;
@@ -31,4 +50,3 @@ export async function getNextStudentId(): Promise<string> {
 export function formatStudentId(id: string): string {
   return id.toUpperCase().trim();
 }
-

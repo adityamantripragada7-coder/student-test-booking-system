@@ -118,46 +118,92 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Test Assessment: Syllabus ${syllabus}`} maxWidth="xl">
-      <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Sloka Test Assessment: Syllabus ${syllabus}`}
+      subtitle="Read the sacred slokas, study their meanings, and answer the multiple-choice questions below."
+      maxWidth="3xl"
+      footer={
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="text-xs text-slate-600 font-medium">
+            Progress:{' '}
+            <strong className={answeredCount === totalCount && totalCount > 0 ? 'text-emerald-700 font-bold' : 'text-brand-700 font-bold'}>
+              {answeredCount} / {totalCount} Questions Answered
+            </strong>
+          </div>
+
+          <div className="flex items-center space-x-2.5 justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting || totalCount === 0 || answeredCount < totalCount}
+              className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs font-bold text-white rounded-xl shadow-sm transition-all active:scale-98 ${
+                submitting || totalCount === 0 || answeredCount < totalCount
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20'
+              }`}
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>{submitting ? 'Submitting Answers...' : 'Submit Test Answers'}</span>
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         {loading ? (
-          <div className="py-12 text-center space-y-3">
-            <div className="w-8 h-8 border-3 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs text-slate-500">Loading Slokas and Examination Questions...</p>
+          <div className="py-16 text-center space-y-3">
+            <div className="w-9 h-9 border-3 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs text-slate-500 font-medium">Loading Slokas and Examination Questions...</p>
           </div>
         ) : error ? (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-center space-x-2.5">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
             <span>{error}</span>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Header / Instructions */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2 text-slate-700">
-                <BookOpen className="w-4 h-4 text-brand-600" />
-                <span>Read the slokas and select the correct option for each question.</span>
+          <div className="space-y-6">
+            {/* Header Instructions */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+              <div className="flex items-center space-x-2 text-slate-700 font-medium">
+                <BookOpen className="w-4 h-4 text-brand-600 shrink-0" />
+                <span>Read each verse carefully and select the single correct option.</span>
               </div>
-              <span className="font-semibold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-md">
-                Answered: {answeredCount} / {totalCount}
+              <span className="font-bold text-brand-700 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-2xs self-start sm:self-auto">
+                Completed: {answeredCount} / {totalCount}
               </span>
             </div>
 
-            {/* Slokas and Questions */}
+            {submitError && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700 flex items-center space-x-2 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{submitError}</span>
+              </div>
+            )}
+
+            {/* Slokas and Questions List */}
             {slokas.map((sloka, sIdx) => (
-              <div key={sloka._id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+              <div key={sloka._id} className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-5">
                 {/* Sloka Header */}
-                <div className="border-b border-slate-100 pb-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wider bg-brand-50 px-2 py-0.5 rounded">
-                      Section {sIdx + 1} • Chapter {sloka.chapter}, Verse {sloka.slokaNumber}
+                <div className="border-b border-slate-100 pb-4 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wider bg-brand-50 px-2.5 py-0.5 rounded-lg border border-brand-100">
+                      Verse {sIdx + 1} • Chapter {sloka.chapter}, Verse {sloka.slokaNumber}
                     </span>
-                    <span className="text-xs font-semibold text-slate-500">{sloka.title}</span>
+                    <span className="text-xs font-bold text-slate-700">{sloka.title}</span>
                   </div>
 
                   {/* Sanskrit Verses */}
-                  <div className="mt-3 p-3 bg-amber-50/50 border border-amber-200/60 rounded-xl text-center space-y-1">
-                    <p className="text-base font-medium text-amber-950 font-serif whitespace-pre-line leading-relaxed">
+                  <div className="p-4 bg-amber-50/60 border border-amber-200/70 rounded-2xl text-center space-y-1.5 shadow-2xs">
+                    <p className="text-base sm:text-lg font-bold text-amber-950 font-serif whitespace-pre-line leading-relaxed tracking-wide">
                       {sloka.sanskritText}
                     </p>
                     {sloka.transliteration && (
@@ -167,25 +213,25 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
                     )}
                   </div>
 
-                  <p className="mt-2 text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed pt-1">
                     <strong className="text-slate-800">English Meaning: </strong>
                     {sloka.englishMeaning}
                   </p>
                 </div>
 
                 {/* Questions for this Sloka */}
-                <div className="space-y-4 pt-1">
+                <div className="space-y-4">
                   {sloka.questions.map((q: any, qIdx: number) => {
                     const qId = String(q._id);
                     const selected = selectedAnswers[qId];
 
                     return (
-                      <div key={qId} className="p-4 bg-slate-50/80 rounded-xl border border-slate-200 space-y-3">
-                        <div className="flex items-start space-x-2">
-                          <span className="flex-shrink-0 w-5 h-5 bg-brand-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                      <div key={qId} className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200/80 space-y-3">
+                        <div className="flex items-start space-x-2.5">
+                          <span className="shrink-0 w-5 h-5 bg-brand-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 shadow-2xs">
                             {qIdx + 1}
                           </span>
-                          <p className="text-xs font-bold text-slate-900 leading-normal">
+                          <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
                             {q.questionText}
                           </p>
                         </div>
@@ -198,10 +244,10 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
                               <label
                                 key={optIdx}
                                 onClick={() => handleSelectOption(qId, optIdx)}
-                                className={`flex items-center space-x-3 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                                className={`flex items-center space-x-3 p-3 rounded-xl border text-xs sm:text-sm cursor-pointer transition-all ${
                                   isChosen
-                                    ? 'bg-brand-50 border-brand-500 font-semibold text-brand-900 shadow-2xs'
-                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                    ? 'bg-brand-50 border-brand-600 font-bold text-brand-950 shadow-2xs ring-1 ring-brand-500/20'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50/80 hover:border-slate-300'
                                 }`}
                               >
                                 <input
@@ -209,7 +255,7 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
                                   name={`question_${qId}`}
                                   checked={isChosen}
                                   onChange={() => handleSelectOption(qId, optIdx)}
-                                  className="h-3.5 w-3.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                                  className="h-4 w-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
                                 <span className="flex-1">{opt}</span>
                               </label>
@@ -222,34 +268,7 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
                 </div>
               </div>
             ))}
-
-            {submitError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{submitError}</span>
-              </div>
-            )}
-
-            {/* Submit Action */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={submitting || totalCount === 0}
-                className="inline-flex items-center space-x-2 px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs disabled:opacity-50 transition-colors"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>{submitting ? 'Submitting Answers...' : 'Submit Test Answers'}</span>
-              </button>
-            </div>
-          </form>
+          </div>
         )}
       </div>
     </Modal>

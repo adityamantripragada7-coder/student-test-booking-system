@@ -20,6 +20,8 @@ import {
   Sparkles,
   ArrowRight,
   Search,
+  MapPin,
+  Tag,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatTimeDisplay } from '../admin/Bookings';
@@ -49,7 +51,7 @@ export const StudentBookSlot: React.FC = () => {
   const [syllabusError, setSyllabusError] = useState<string>('');
   const [bookingLoading, setBookingLoading] = useState(false);
 
-  // Search & Filter for the 30 syllabus options
+  // Search & Filter for syllabus options
   const [syllabusSearch, setSyllabusSearch] = useState<string>('');
   const [syllabusFilterTab, setSyllabusFilterTab] = useState<'all' | 'range' | 'milestone'>('all');
 
@@ -144,7 +146,6 @@ export const StudentBookSlot: React.FC = () => {
         const slotObj = typeof res.booking.slot === 'object' ? res.booking.slot : bookingSlotTarget;
         const studentObj = typeof res.booking.student === 'object' ? res.booking.student : null;
 
-        // Open Success Popup with all booking details
         setSuccessModalData({
           bookingId: res.booking._id,
           testDate: slotObj.testDate,
@@ -180,7 +181,7 @@ export const StudentBookSlot: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-5xl">
+      <div className="space-y-6 max-w-5xl mx-auto">
         <CardSkeleton />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <CardSkeleton />
@@ -193,58 +194,71 @@ export const StudentBookSlot: React.FC = () => {
   const activeSlotObj = activeBooking && typeof activeBooking.slot === 'object' ? activeBooking.slot : null;
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-5xl">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-5xl mx-auto">
       {/* Toast Notification */}
       {notification && (
         <div
-          className={`p-4 rounded-xl border flex items-center justify-between text-xs font-medium shadow-xs ${
+          className={`p-4 rounded-2xl border flex items-center justify-between text-xs sm:text-sm font-medium shadow-sm transition-all ${
             notification.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-rose-50 text-rose-800 border-rose-200'
           }`}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5">
             {notification.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-rose-600" />
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
             )}
             <span>{notification.message}</span>
           </div>
-          <button onClick={() => setNotification(null)} className="text-slate-400 hover:text-slate-600">
+          <button
+            onClick={() => setNotification(null)}
+            className="text-slate-400 hover:text-slate-600 font-bold px-2 py-1"
+          >
             &times;
           </button>
         </div>
       )}
 
       {/* Page Header */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-        <h1 className="text-xl font-bold text-slate-900">Book Test Slot</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Select your convenient examination session, choose your required test syllabus, and reserve your seat.
-        </p>
+      <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-600 mb-1">
+            <CalendarPlus className="w-4 h-4" />
+            <span>Test Scheduling</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Book Examination Slot</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Select an active examination date, choose your assigned syllabus module, and reserve your seat.
+          </p>
+        </div>
+        <div className="shrink-0 flex items-center space-x-2 bg-slate-50 px-3.5 py-2 rounded-2xl border border-slate-200/60">
+          <span className="text-xs text-slate-500 font-medium">Available Sessions:</span>
+          <span className="text-sm font-bold text-slate-900">{slots.length}</span>
+        </div>
       </div>
 
       {/* Active Booking Notice Banner if student already has active booking */}
       {activeBooking && activeSlotObj && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-xs text-amber-900 flex items-start space-x-3 shadow-xs">
+        <div className="bg-amber-50/90 border border-amber-200/80 rounded-3xl p-5 sm:p-6 text-xs sm:text-sm text-amber-950 flex items-start space-x-3.5 shadow-sm">
           <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h2 className="font-bold text-sm text-amber-950">Active Booking Restriction</h2>
-            <p className="leading-relaxed">
-              You currently hold an active booking on{' '}
-              <strong className="text-amber-950">
+          <div className="space-y-1.5">
+            <h2 className="font-bold text-sm sm:text-base text-amber-950">Active Booking Restriction</h2>
+            <p className="leading-relaxed text-amber-900">
+              You currently hold an active reservation for{' '}
+              <strong className="text-amber-950 font-bold">
                 {activeSlotObj.testDate} at {formatTimeDisplay(activeSlotObj.startTime)}
               </strong>
               {activeBooking.syllabus && (
                 <>
-                  {' '}for syllabus <strong className="text-amber-950">{activeBooking.syllabus}</strong>
+                  {' '}for syllabus <strong className="text-amber-950 font-bold">{activeBooking.syllabus}</strong>
                 </>
               )}.
             </p>
-            <p className="text-amber-700">
-              Students can hold only <strong>1 active booking at a time</strong>. To choose a different slot below, please cancel your active booking first from your{' '}
-              <Link to="/student" className="underline font-semibold">
+            <p className="text-amber-800 text-xs">
+              Students can hold only <strong>1 active booking at a time</strong>. To choose a different slot, cancel your existing booking from your{' '}
+              <Link to="/student" className="underline font-bold text-amber-950 hover:text-amber-800">
                 Student Dashboard
               </Link>.
             </p>
@@ -256,10 +270,10 @@ export const StudentBookSlot: React.FC = () => {
       {slots.length === 0 ? (
         <EmptyState
           title="No Available Slots"
-          description="There are currently no active test slots scheduled for booking. Please check back later."
+          description="There are currently no active test slots scheduled for booking. Please check back later or contact your course coordinator."
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {slots.map((slot) => {
             const isFull = slot.availableSeats <= 0 || slot.status === 'Full';
             const isCurrentActive = activeSlotObj && activeSlotObj._id === slot._id;
@@ -268,53 +282,77 @@ export const StudentBookSlot: React.FC = () => {
             return (
               <div
                 key={slot._id}
-                className={`bg-white rounded-2xl border p-5 sm:p-6 shadow-2xs flex flex-col justify-between transition-all ${
+                className={`bg-white rounded-3xl border p-6 sm:p-7 shadow-sm flex flex-col justify-between transition-all ${
                   isCurrentActive
-                    ? 'border-brand-500 ring-2 ring-brand-500/20'
-                    : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
+                    ? 'border-brand-500 ring-2 ring-brand-500/20 shadow-md'
+                    : 'border-slate-200/90 hover:border-slate-300 hover:shadow-md'
                 }`}
               >
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between">
+                  {/* Slot Header */}
+                  <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wider bg-brand-50 px-2 py-0.5 rounded-md">
-                        Test Assessment Slot
+                      <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wider bg-brand-50 px-2.5 py-0.5 rounded-lg border border-brand-100">
+                        Assessment Session
                       </span>
-                      <h3 className="font-bold text-slate-900 text-lg flex items-center space-x-2 pt-0.5">
-                        <Calendar className="w-4 h-4 text-brand-600" />
+                      <h3 className="font-extrabold text-slate-900 text-lg flex items-center space-x-2 pt-1">
+                        <Calendar className="w-4 h-4 text-brand-600 shrink-0" />
                         <span>{slot.testDate}</span>
                       </h3>
+                      {slot.testTitle && (
+                        <p className="text-xs text-slate-500 font-medium">{slot.testTitle}</p>
+                      )}
                     </div>
                     <Badge status={isFull ? 'Full' : slot.status} />
                   </div>
 
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 space-y-2 text-xs">
+                  {/* Session Metrics */}
+                  <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-3 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Session Start Time</span>
-                      <div className="flex items-center space-x-1 font-bold text-brand-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                      <div className="flex items-center space-x-1.5 font-bold text-brand-700 bg-white px-3 py-1 rounded-xl border border-slate-200/80 shadow-2xs">
                         <Clock className="w-3.5 h-3.5 text-brand-600" />
                         <span>{formatTimeDisplay(slot.startTime)}</span>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-200/60 space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500 flex items-center space-x-1">
+                    {slot.location && (
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/50">
+                        <span className="text-slate-500 font-medium">Venue / Hall</span>
+                        <div className="flex items-center space-x-1 font-semibold text-slate-700">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{slot.location}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Seat Availability Bar */}
+                    <div className="pt-2 border-t border-slate-200/50 space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500 font-medium flex items-center space-x-1">
                           <Users className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Seat Availability</span>
+                          <span>Seat Capacity</span>
                         </span>
-                        <span className="font-semibold text-slate-800">
-                          {slot.availableSeats} of {slot.capacity} seats left
+                        <span className="font-bold text-slate-800">
+                          {slot.availableSeats > 0 ? (
+                            <span className="text-emerald-600">{slot.availableSeats} seats remaining</span>
+                          ) : (
+                            <span className="text-rose-600">Full</span>
+                          )}{' '}
+                          <span className="text-slate-400 font-normal">
+                            ({slot.bookedCount}/{slot.capacity})
+                          </span>
                         </span>
                       </div>
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+
+                      <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all ${
+                          className={`h-full rounded-full transition-all duration-300 ${
                             bookedPct >= 100
                               ? 'bg-rose-500'
                               : bookedPct >= 75
                               ? 'bg-amber-500'
-                              : 'bg-brand-600'
+                              : 'bg-emerald-500'
                           }`}
                           style={{ width: `${bookedPct}%` }}
                         />
@@ -323,23 +361,31 @@ export const StudentBookSlot: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Card Action Button */}
                 <div className="pt-5 border-t border-slate-100 mt-5">
                   {isCurrentActive ? (
-                    <div className="w-full text-center py-2.5 px-4 bg-brand-50 text-brand-700 font-semibold text-xs rounded-xl border border-brand-200">
+                    <div className="w-full text-center py-3 px-4 bg-brand-50 text-brand-700 font-bold text-xs sm:text-sm rounded-2xl border border-brand-200">
                       ✓ Your Current Active Booking
                     </div>
                   ) : (
                     <button
+                      type="button"
                       onClick={() => openBookingModal(slot)}
                       disabled={isFull || !!activeBooking}
-                      className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl text-xs font-semibold shadow-xs transition-all active:scale-98 ${
+                      className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl text-xs sm:text-sm font-bold shadow-sm transition-all active:scale-98 ${
                         isFull || activeBooking
-                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                          : 'bg-brand-600 text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500/20'
+                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                          : 'bg-brand-600 hover:bg-brand-700 text-white focus:ring-4 focus:ring-brand-500/20'
                       }`}
                     >
-                      <CalendarPlus className="w-4 h-4" />
-                      <span>{isFull ? 'Slot Fully Booked' : activeBooking ? 'Active Booking Exists' : 'Choose Slot & Syllabus'}</span>
+                      <CalendarPlus className="w-4 h-4 shrink-0" />
+                      <span>
+                        {isFull
+                          ? 'Slot Fully Booked'
+                          : activeBooking
+                          ? 'Active Booking Exists'
+                          : 'Choose Slot & Syllabus'}
+                      </span>
                     </button>
                   )}
                 </div>
@@ -354,106 +400,140 @@ export const StudentBookSlot: React.FC = () => {
         <Modal
           isOpen={!!bookingSlotTarget}
           onClose={() => setBookingSlotTarget(null)}
-          title="Select Syllabus & Book Test"
-          maxWidth="lg"
-        >
-          <div className="space-y-5">
-            {/* Slot Summary Banner */}
-            <div className="p-3.5 bg-brand-50/60 rounded-xl border border-brand-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center space-x-2 font-semibold text-brand-900">
-                <Calendar className="w-4 h-4 text-brand-600" />
-                <span>Date: {bookingSlotTarget.testDate}</span>
-              </div>
-              <div className="flex items-center space-x-1.5 font-bold text-brand-700 bg-white px-2.5 py-1 rounded-lg border border-brand-200">
-                <Clock className="w-3.5 h-3.5 text-brand-600" />
-                <span>Start Time: {formatTimeDisplay(bookingSlotTarget.startTime)}</span>
-              </div>
-              <div className="text-slate-600">
-                <span>{bookingSlotTarget.availableSeats} seats remaining</span>
-              </div>
-            </div>
-
-            {/* Syllabus Selection (Mandatory - Select Exactly One) */}
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-slate-100">
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center space-x-1.5">
-                    <BookOpen className="w-4 h-4 text-brand-600 shrink-0" />
-                    <span>Select syllabus from the following options before booking:</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Choose one syllabus option. Only one syllabus slot can be chosen at a time.
-                  </p>
-                </div>
-                {selectedSyllabus && (
-                  <span className="self-start sm:self-auto inline-flex items-center space-x-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs">
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Selected: {selectedSyllabus}</span>
+          title="Choose Syllabus & Confirm Booking"
+          subtitle="Select exactly one syllabus module for your scheduled evaluation session."
+          maxWidth="3xl"
+          footer={
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-2 text-xs text-slate-600">
+                <span className="font-medium text-slate-500">Chosen Syllabus:</span>
+                {selectedSyllabus ? (
+                  <span className="inline-flex items-center space-x-1 font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200">
+                    <Check className="w-3.5 h-3.5 text-brand-600" />
+                    <span>{selectedSyllabus}</span>
                   </span>
+                ) : (
+                  <span className="text-slate-400 italic">None selected yet</span>
                 )}
               </div>
 
-              {/* Quick Search & Category Tabs */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="text"
-                    value={syllabusSearch}
-                    onChange={(e) => setSyllabusSearch(e.target.value)}
-                    placeholder="Search syllabus (e.g. 1-5, Monthly, Prefinal, Final)..."
-                    className="w-full pl-9 pr-7 py-1.5 text-xs rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-slate-50/50"
-                  />
-                  {syllabusSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setSyllabusSearch('')}
-                      className="absolute right-2.5 top-1.5 text-slate-400 hover:text-slate-600 text-xs"
-                    >
-                      &times;
-                    </button>
-                  )}
-                </div>
+              <div className="flex items-center space-x-2.5 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setBookingSlotTarget(null)}
+                  className="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 active:scale-98 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmBook}
+                  disabled={bookingLoading || !selectedSyllabus.trim()}
+                  className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all active:scale-98 ${
+                    !selectedSyllabus.trim() || bookingLoading
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-brand-600 text-white hover:bg-brand-700 focus:ring-4 focus:ring-brand-500/20'
+                  }`}
+                >
+                  <CalendarPlus className="w-4 h-4 shrink-0" />
+                  <span>{bookingLoading ? 'Reserving Seat...' : 'Confirm Test Booking'}</span>
+                </button>
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            {/* Slot Summary Banner */}
+            <div className="p-3.5 sm:p-4 bg-brand-50/70 rounded-2xl border border-brand-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center space-x-2 font-bold text-brand-950">
+                <Calendar className="w-4 h-4 text-brand-600 shrink-0" />
+                <span>Session Date: {bookingSlotTarget.testDate}</span>
+              </div>
+              <div className="flex items-center space-x-1.5 font-bold text-brand-700 bg-white px-2.5 py-1 rounded-xl border border-brand-200 shadow-2xs">
+                <Clock className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                <span>Start: {formatTimeDisplay(bookingSlotTarget.startTime)}</span>
+              </div>
+              <div className="text-slate-600 font-medium">
+                <span className="font-bold text-emerald-700">{bookingSlotTarget.availableSeats} seats</span> remaining
+              </div>
+            </div>
 
-                <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 text-[11px] self-start sm:self-auto">
+            {/* Quick Search & Category Tabs */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
+              <div className="relative flex-1">
+                <Search className="w-3.5 h-3.5 absolute left-3.5 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  value={syllabusSearch}
+                  onChange={(e) => setSyllabusSearch(e.target.value)}
+                  placeholder="Search syllabus (e.g. 1-5, Monthly, Prefinal, Final)..."
+                  className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 bg-slate-50/60 text-slate-900 transition-colors"
+                />
+                {syllabusSearch && (
                   <button
                     type="button"
-                    onClick={() => setSyllabusFilterTab('all')}
-                    className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                      syllabusFilterTab === 'all'
-                        ? 'bg-white text-brand-700 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                    onClick={() => setSyllabusSearch('')}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
                   >
-                    All ({SYLLABUS_OPTIONS.length})
+                    &times;
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setSyllabusFilterTab('range')}
-                    className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                      syllabusFilterTab === 'range'
-                        ? 'bg-white text-brand-700 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Lesson Ranges
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSyllabusFilterTab('milestone')}
-                    className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                      syllabusFilterTab === 'milestone'
-                        ? 'bg-white text-brand-700 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    Milestones & Exams
-                  </button>
-                </div>
+                )}
               </div>
 
-              {/* Grid of the 30 Syllabus Options */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[44vh] overflow-y-auto pr-1 pt-1">
+              {/* Category Filter Pills */}
+              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-[11px] self-start sm:self-auto overflow-x-auto max-w-full">
+                <button
+                  type="button"
+                  onClick={() => setSyllabusFilterTab('all')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all shrink-0 ${
+                    syllabusFilterTab === 'all'
+                      ? 'bg-white text-brand-700 shadow-2xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All ({SYLLABUS_OPTIONS.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSyllabusFilterTab('range')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all shrink-0 ${
+                    syllabusFilterTab === 'range'
+                      ? 'bg-white text-brand-700 shadow-2xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Lesson Ranges (22)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSyllabusFilterTab('milestone')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all shrink-0 ${
+                    syllabusFilterTab === 'milestone'
+                      ? 'bg-white text-brand-700 shadow-2xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Exams & Milestones (8)
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message if user tries booking without choosing syllabus */}
+            {syllabusError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{syllabusError}</span>
+              </div>
+            )}
+
+            {/* Responsive Grid of Syllabus Cards */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 px-0.5">
+                <span>Select One Module:</span>
+                <span>Showing {filteredSyllabusOptions.length} available</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[46vh] sm:max-h-[50vh] overflow-y-auto overscroll-contain pr-1 pb-1">
                 {filteredSyllabusOptions.map((opt) => {
                   const isSelected = !isCustomSelected && selectedSyllabus === opt.title;
                   const isMilestone = opt.type !== 'range';
@@ -462,12 +542,12 @@ export const StudentBookSlot: React.FC = () => {
                     <div
                       key={opt.id}
                       onClick={() => handleSelectStandardSyllabus(opt.title)}
-                      className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-start space-x-2.5 select-none relative ${
+                      className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start space-x-3 select-none relative ${
                         isSelected
-                          ? 'bg-brand-50/90 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
+                          ? 'bg-brand-50/90 border-brand-600 ring-2 ring-brand-500/20 shadow-xs'
                           : isMilestone
-                          ? 'bg-indigo-50/30 border-indigo-200/70 hover:border-brand-300 hover:bg-brand-50/30'
-                          : 'bg-white border-slate-200 hover:border-brand-200 hover:bg-slate-50/60'
+                          ? 'bg-teal-50/40 border-teal-200/80 hover:border-brand-300 hover:bg-brand-50/40'
+                          : 'bg-white border-slate-200 hover:border-brand-300 hover:bg-slate-50/80'
                       }`}
                     >
                       <div className="pt-0.5 shrink-0">
@@ -482,12 +562,25 @@ export const StudentBookSlot: React.FC = () => {
                         </div>
                       </div>
                       <div className="space-y-0.5 flex-1 min-w-0">
-                        <span className={`text-xs font-bold leading-tight block truncate ${isSelected ? 'text-brand-950 font-extrabold' : 'text-slate-900'}`}>
-                          {opt.title}
-                        </span>
-                        <span className={`text-[10px] font-semibold tracking-wide block truncate ${
-                          isMilestone ? 'text-indigo-600' : 'text-slate-400'
-                        }`}>
+                        <div className="flex items-center justify-between gap-1">
+                          <span
+                            className={`text-xs font-bold leading-tight truncate ${
+                              isSelected ? 'text-brand-950 font-extrabold' : 'text-slate-900'
+                            }`}
+                          >
+                            {opt.title}
+                          </span>
+                          {isMilestone && (
+                            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-teal-100 text-teal-800 shrink-0">
+                              {opt.type}
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`text-[10px] font-medium leading-tight block truncate ${
+                            isMilestone ? 'text-teal-700' : 'text-slate-500'
+                          }`}
+                        >
                           {opt.category}
                         </span>
                       </div>
@@ -496,92 +589,51 @@ export const StudentBookSlot: React.FC = () => {
                 })}
 
                 {filteredSyllabusOptions.length === 0 && (
-                  <div className="col-span-full py-8 text-center text-xs text-slate-400">
+                  <div className="col-span-full py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                     No syllabus option matches "{syllabusSearch}".
                   </div>
                 )}
               </div>
-
-              {/* Custom / Other Syllabus Option */}
-              <div
-                onClick={handleSelectCustomSyllabus}
-                className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start space-x-3 select-none ${
-                  isCustomSelected
-                    ? 'bg-brand-50/80 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-brand-200 hover:bg-slate-50/60'
-                }`}
-              >
-                <div className="pt-0.5 shrink-0">
-                  <div
-                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                      isCustomSelected
-                        ? 'border-brand-600 bg-brand-600 text-white'
-                        : 'border-slate-300 bg-white'
-                    }`}
-                  >
-                    {isCustomSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
-                </div>
-                <div className="space-y-1 flex-1">
-                  <span className={`text-xs font-bold leading-tight ${isCustomSelected ? 'text-brand-950' : 'text-slate-900'}`}>
-                    Other / Specialized Course Syllabus
-                  </span>
-                  <p className="text-[11px] text-slate-500">
-                    Need a custom syllabus? Enter a specialized topic or elective course
-                  </p>
-                  {isCustomSelected && (
-                    <input
-                      type="text"
-                      autoFocus
-                      value={customSyllabusInput}
-                      onChange={handleCustomInputChange}
-                      onClick={(e) => e.stopPropagation()}
-                      placeholder="e.g. Specialized Revision Module"
-                      className="w-full mt-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-                    />
-                  )}
-                </div>
-              </div>
             </div>
 
-            {/* Error Message if user tries booking without choosing syllabus */}
-            {syllabusError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{syllabusError}</span>
-              </div>
-            )}
-
-            {/* Footer Buttons: Cancel & Book Test */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
-              <div className="text-xs text-slate-500 self-start sm:self-auto">
-                Selected Syllabus:{' '}
-                <strong className={selectedSyllabus ? "text-brand-700 font-bold" : "text-slate-500"}>
-                  {selectedSyllabus || (isCustomSelected ? customSyllabusInput || 'Typing custom...' : 'None chosen yet')}
-                </strong>
-              </div>
-
-              <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
-                <button
-                  type="button"
-                  onClick={() => setBookingSlotTarget(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmBook}
-                  disabled={bookingLoading || !selectedSyllabus.trim()}
-                  className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-semibold shadow-xs transition-all active:scale-98 ${
-                    !selectedSyllabus.trim() || bookingLoading
-                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-brand-600 text-white hover:bg-brand-700 ring-1 ring-brand-700/20'
+            {/* Custom / Other Syllabus Option */}
+            <div
+              onClick={handleSelectCustomSyllabus}
+              className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start space-x-3 select-none ${
+                isCustomSelected
+                  ? 'bg-brand-50/90 border-brand-600 ring-2 ring-brand-500/20 shadow-xs'
+                  : 'bg-white border-slate-200 hover:border-brand-300 hover:bg-slate-50/80'
+              }`}
+            >
+              <div className="pt-0.5 shrink-0">
+                <div
+                  className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                    isCustomSelected
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-slate-300 bg-white'
                   }`}
                 >
-                  <CalendarPlus className="w-4 h-4" />
-                  <span>{bookingLoading ? 'Processing Booking...' : 'Book Test'}</span>
-                </button>
+                  {isCustomSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                </div>
+              </div>
+              <div className="space-y-1 flex-1">
+                <span className={`text-xs font-bold leading-tight ${isCustomSelected ? 'text-brand-950 font-extrabold' : 'text-slate-900'}`}>
+                  Custom / Specialized Syllabus Option
+                </span>
+                <p className="text-[11px] text-slate-500">
+                  Select this if you are scheduled for a specialized chapter or catch-up examination module.
+                </p>
+                {isCustomSelected && (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={customSyllabusInput}
+                    onChange={handleCustomInputChange}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="Type customized syllabus (e.g. Chapter 1-10 Revision)"
+                    className="w-full mt-2 rounded-xl border border-slate-300 px-3.5 py-2 text-xs bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-slate-900"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -598,100 +650,82 @@ export const StudentBookSlot: React.FC = () => {
         >
           <div className="space-y-5 text-center sm:text-left">
             {/* Header Badge */}
-            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3 p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
-              <div className="p-2.5 rounded-xl bg-emerald-600 text-white shadow-xs shrink-0">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3.5 p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+              <div className="p-3 rounded-2xl bg-emerald-600 text-white shadow-xs shrink-0">
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-emerald-950">
+                <h3 className="text-base font-extrabold text-emerald-950">
                   Seat Confirmed! Booking Successful
                 </h3>
                 <p className="text-xs text-emerald-800">
-                  Your test booking is confirmed and synced directly to the Administrator Portal.
+                  Your examination slot is confirmed and permanently synced in MongoDB Atlas.
                 </p>
               </div>
             </div>
 
-            {/* Prominent Booking Reference ID Card */}
-            <div className="p-4 bg-gradient-to-r from-brand-50 to-indigo-50/70 rounded-2xl border-2 border-brand-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-brand-700 block">
-                  Booking Reference ID:
-                </span>
-                <span className="font-mono text-base sm:text-lg font-extrabold text-slate-900 tracking-wide select-all">
-                  {successModalData.bookingId}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleCopyBookingId(successModalData.bookingId)}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-brand-700 bg-white border border-brand-200 rounded-xl hover:bg-brand-50 hover:border-brand-300 shadow-2xs transition-all active:scale-98 self-stretch sm:self-auto justify-center"
-                title="Copy Booking Reference ID"
-              >
-                {copiedSuccessId ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700">Copied Reference ID!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5 text-brand-600" />
-                    <span>Copy Reference ID</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Booking Details Card */}
-            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3 text-xs">
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
+            {/* Receipt Summary Card */}
+            <div className="p-4 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-3 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
                 <span className="text-slate-500 font-medium">Booking Reference ID:</span>
-                <span className="font-mono font-bold text-brand-700 bg-white px-2.5 py-0.5 rounded border border-slate-200 text-xs">
-                  {successModalData.bookingId}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-                <span className="text-slate-500 font-medium">Test Date:</span>
-                <div className="flex items-center space-x-1 font-bold text-slate-900">
-                  <Calendar className="w-3.5 h-3.5 text-brand-600" />
-                  <span>{successModalData.testDate}</span>
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    {successModalData.bookingId}
+                  </span>
+                  <button
+                    onClick={() => handleCopyBookingId(successModalData.bookingId)}
+                    className="p-1 rounded-md text-slate-400 hover:text-brand-600 hover:bg-white transition-colors"
+                    title="Copy Reference ID"
+                  >
+                    {copiedSuccessId ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-                <span className="text-slate-500 font-medium">Time Slot:</span>
-                <div className="flex items-center space-x-1 font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200/80">
-                  <Clock className="w-3.5 h-3.5 text-brand-600" />
-                  <span>{successModalData.timeSlot}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-                <span className="text-slate-500 font-medium">Test Syllabus:</span>
-                <span className="font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md text-right max-w-[240px] truncate">
-                  {successModalData.syllabus}
-                </span>
               </div>
 
               {successModalData.studentName && (
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Student Registered:</span>
-                  <span className="font-semibold text-slate-800">
-                    {successModalData.studentName} ({successModalData.studentId})
-                  </span>
+                  <span className="text-slate-500">Student Name:</span>
+                  <span className="font-bold text-slate-900">{successModalData.studentName}</span>
                 </div>
               )}
+
+              {successModalData.studentId && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Student ID:</span>
+                  <span className="font-mono font-bold text-brand-700">{successModalData.studentId}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Scheduled Date:</span>
+                <span className="font-bold text-slate-900">{successModalData.testDate}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Session Time:</span>
+                <span className="font-bold text-slate-900">{successModalData.timeSlot}</span>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/80">
+                <span className="text-slate-500">Selected Syllabus:</span>
+                <span className="font-bold text-indigo-950 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                  {successModalData.syllabus}
+                </span>
+              </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setSuccessModalData(null)}
                 className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
               >
-                Close
+                Close Receipt
               </button>
               <button
                 type="button"
@@ -699,9 +733,9 @@ export const StudentBookSlot: React.FC = () => {
                   setSuccessModalData(null);
                   navigate('/student');
                 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 shadow-xs transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-xs transition-colors"
               >
-                <span>View in Dashboard</span>
+                <span>Return to Student Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

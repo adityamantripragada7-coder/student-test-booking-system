@@ -233,9 +233,9 @@ export const Login: React.FC = () => {
                     setStudentError('');
                     setRegError('');
                   }}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
                     studentMode === 'login'
-                      ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                      ? 'bg-brand-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -248,9 +248,9 @@ export const Login: React.FC = () => {
                     setStudentError('');
                     setRegError('');
                   }}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
                     studentMode === 'register'
-                      ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                      ? 'bg-brand-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -289,7 +289,7 @@ export const Login: React.FC = () => {
                   <button
                     type="submit"
                     disabled={studentLoading}
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 transition-colors"
                   >
                     {studentLoading ? 'Authenticating...' : 'Sign In as Student'}
                   </button>
@@ -299,7 +299,7 @@ export const Login: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setStudentMode('register')}
-                      className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                      className="font-semibold text-brand-600 hover:text-brand-700 hover:underline"
                     >
                       Register as New Student &rarr;
                     </button>
@@ -356,7 +356,7 @@ export const Login: React.FC = () => {
                   <button
                     type="submit"
                     disabled={regLoading}
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 transition-colors"
                   >
                     {regLoading ? 'Registering...' : 'Register & Enter Portal'}
                   </button>
@@ -366,7 +366,7 @@ export const Login: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setStudentMode('login')}
-                      className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                      className="font-semibold text-brand-600 hover:text-brand-700 hover:underline"
                     >
                       Sign In with Student ID &rarr;
                     </button>

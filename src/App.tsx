@@ -49,7 +49,7 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode; allowedRole: 'admin
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 md:ml-64 p-4 sm:p-6 lg:p-8 max-w-7xl">
+        <main className="flex-1 md:ml-64 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0">
           {children}
         </main>
       </div>

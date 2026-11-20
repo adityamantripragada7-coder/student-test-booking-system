@@ -53,6 +53,8 @@ export interface Result {
   memoryGrade: GradeType;
   mistakesGrade: GradeType;
   grade?: GradeType;
+  marksObtained?: number | null;
+  maxMarks?: number | null;
   status: string;
   dateUploaded: string;
 }

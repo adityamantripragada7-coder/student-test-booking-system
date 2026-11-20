@@ -317,4 +317,53 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => 
   }
 });
 
+// Update student profile (Self)
+router.put('/profile', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Persistent database is not connected.',
+      });
+    }
+
+    if (req.user?.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Only students can update profile via this endpoint.' });
+    }
+
+    const { name, phone } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Student full name is required.' });
+    }
+
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ success: false, message: 'Mobile number is required.' });
+    }
+
+    const student = await Student.findById(req.user.id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student record not found.' });
+    }
+
+    student.name = name.trim();
+    student.phone = phone.trim();
+    await student.save();
+
+    return res.json({
+      success: true,
+      message: 'Profile details updated successfully!',
+      user: {
+        id: student._id,
+        role: 'student',
+        studentId: student.studentId,
+        name: student.name,
+        phone: student.phone,
+        registrationDate: student.registrationDate,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;

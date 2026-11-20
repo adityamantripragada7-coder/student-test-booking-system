@@ -23,6 +23,7 @@ import {
   Sparkles,
   BookOpen,
   Phone,
+  Send,
 } from 'lucide-react';
 
 const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'Retest'];
@@ -785,9 +786,51 @@ export const AdminBookings: React.FC = () => {
         isOpen={showResultModal}
         onClose={() => setShowResultModal(false)}
         title="Post Assessment Result"
-        maxWidth="md"
+        maxWidth="lg"
+        footer={
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+            <div className="text-xs font-semibold">
+              {!resultMemoryGrade || !resultMistakesGrade ? (
+                <span className="inline-flex items-center space-x-1.5 text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Select both Memory & Mistakes grades</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center space-x-1.5 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Memory: <strong>{resultMemoryGrade}</strong> | Mistakes: <strong>{resultMistakesGrade}</strong></span>
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2.5 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowResultModal(false)}
+                className="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="postResultForm"
+                disabled={resultLoading || !resultMemoryGrade || !resultMistakesGrade}
+                className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all active:scale-98 ${
+                  !resultMemoryGrade || !resultMistakesGrade
+                    ? 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
+                    : resultLoading
+                    ? 'bg-brand-400 text-white cursor-wait'
+                    : 'bg-brand-600 hover:bg-brand-700 text-white hover:shadow-lg focus:ring-4 focus:ring-brand-500/20'
+                }`}
+              >
+                <Send className="w-4 h-4 shrink-0" />
+                <span>{resultLoading ? 'Publishing...' : 'Publish Official Result'}</span>
+              </button>
+            </div>
+          </div>
+        }
       >
-        <form onSubmit={handleResultSubmit} className="space-y-4">
+        <form id="postResultForm" onSubmit={handleResultSubmit} className="space-y-4">
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1">
             <span className="text-slate-400 block text-[11px]">Student Information</span>
             <div className="flex items-center space-x-2">
@@ -896,23 +939,6 @@ export const AdminBookings: React.FC = () => {
               <span>{resultFormError}</span>
             </div>
           )}
-
-          <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowResultModal(false)}
-              className="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={resultLoading || !resultMemoryGrade || !resultMistakesGrade}
-              className="px-5 py-2.5 text-xs font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 active:scale-98 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              {resultLoading ? 'Publishing...' : 'Publish Result'}
-            </button>
-          </div>
         </form>
       </Modal>
 

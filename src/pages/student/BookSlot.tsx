@@ -406,14 +406,17 @@ export const StudentBookSlot: React.FC = () => {
           footer={
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div className="flex items-center space-x-2 text-xs text-slate-600">
-                <span className="font-medium text-slate-500">Chosen Syllabus:</span>
+                <span className="font-medium text-slate-500">Selected Module:</span>
                 {selectedSyllabus ? (
-                  <span className="inline-flex items-center space-x-1 font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200">
+                  <span className="inline-flex items-center space-x-1 font-bold text-brand-700 bg-brand-50 px-3 py-1 rounded-xl border border-brand-200">
                     <Check className="w-3.5 h-3.5 text-brand-600" />
                     <span>{selectedSyllabus}</span>
                   </span>
                 ) : (
-                  <span className="text-slate-400 italic">None selected yet</span>
+                  <span className="inline-flex items-center space-x-1 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Please click a syllabus below</span>
+                  </span>
                 )}
               </div>
 
@@ -429,14 +432,22 @@ export const StudentBookSlot: React.FC = () => {
                   type="button"
                   onClick={handleConfirmBook}
                   disabled={bookingLoading || !selectedSyllabus.trim()}
-                  className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all active:scale-98 ${
-                    !selectedSyllabus.trim() || bookingLoading
-                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-brand-600 text-white hover:bg-brand-700 focus:ring-4 focus:ring-brand-500/20'
+                  className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-98 ${
+                    !selectedSyllabus.trim()
+                      ? 'bg-slate-100 text-slate-400 border border-slate-300 cursor-not-allowed'
+                      : bookingLoading
+                      ? 'bg-brand-400 text-white cursor-wait'
+                      : 'bg-brand-600 text-white hover:bg-brand-700 hover:shadow-lg focus:ring-4 focus:ring-brand-500/20'
                   }`}
                 >
-                  <CalendarPlus className="w-4 h-4 shrink-0" />
-                  <span>{bookingLoading ? 'Reserving Seat...' : 'Confirm Test Booking'}</span>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>
+                    {bookingLoading
+                      ? 'Submitting Booking...'
+                      : selectedSyllabus.trim()
+                      ? `Submit Booking: ${selectedSyllabus}`
+                      : 'Select Syllabus to Submit'}
+                  </span>
                 </button>
               </div>
             </div>
@@ -457,6 +468,27 @@ export const StudentBookSlot: React.FC = () => {
                 <span className="font-bold text-emerald-700">{bookingSlotTarget.availableSeats} seats</span> remaining
               </div>
             </div>
+
+            {/* Active Selection Banner with Direct Quick-Submit */}
+            {selectedSyllabus && (
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between gap-3 text-xs animate-fade-in shadow-2xs">
+                <div className="flex items-center space-x-2 text-emerald-900">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    Selected Syllabus: <strong className="font-bold text-emerald-950">{selectedSyllabus}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleConfirmBook}
+                  disabled={bookingLoading}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs text-xs transition-all active:scale-98 shrink-0 flex items-center space-x-1.5 focus:ring-4 focus:ring-emerald-500/20"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{bookingLoading ? 'Submitting...' : 'Submit Booking'}</span>
+                </button>
+              </div>
+            )}
 
             {/* Quick Search & Category Tabs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
@@ -533,7 +565,7 @@ export const StudentBookSlot: React.FC = () => {
                 <span>Showing {filteredSyllabusOptions.length} available</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[46vh] sm:max-h-[50vh] overflow-y-auto overscroll-contain pr-1 pb-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[36vh] sm:max-h-[40vh] overflow-y-auto overscroll-contain pr-1 pb-1">
                 {filteredSyllabusOptions.map((opt) => {
                   const isSelected = !isCustomSelected && selectedSyllabus === opt.title;
                   const isMilestone = opt.type !== 'range';

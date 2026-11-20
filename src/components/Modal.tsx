@@ -60,7 +60,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 overflow-y-auto"
       role="dialog"
       aria-modal="true"
     >
@@ -73,10 +73,10 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Dialog Card (Dynamic Viewport Height & Independent Scroll Container) */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[92dvh] sm:max-h-[90dvh] flex flex-col bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-fade-in text-left z-10`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[88dvh] sm:max-h-[86dvh] my-auto flex flex-col bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-fade-in text-left z-10`}
       >
         {/* Sticky Modal Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 bg-white shrink-0">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 bg-white shrink-0 z-20">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-snug">
               {title}
@@ -99,9 +99,9 @@ export const Modal: React.FC<ModalProps> = ({
           {children}
         </div>
 
-        {/* Optional Sticky Modal Footer (always accessible at the bottom) */}
+        {/* Guaranteed Visible Sticky Modal Footer */}
         {footer && (
-          <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-100 bg-slate-50/90 shrink-0">
+          <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 bg-white/95 backdrop-blur-sm shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-20">
             {footer}
           </div>
         )}

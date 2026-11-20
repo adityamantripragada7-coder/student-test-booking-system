@@ -145,14 +145,22 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={submitting || totalCount === 0 || answeredCount < totalCount}
-              className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs font-bold text-white rounded-xl shadow-sm transition-all active:scale-98 ${
-                submitting || totalCount === 0 || answeredCount < totalCount
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20'
+              className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all active:scale-98 ${
+                submitting
+                  ? 'bg-brand-400 text-white cursor-wait'
+                  : answeredCount === totalCount && totalCount > 0
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-lg focus:ring-4 focus:ring-emerald-500/20'
+                  : 'bg-slate-100 text-slate-500 border border-slate-300 cursor-not-allowed'
               }`}
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{submitting ? 'Submitting Answers...' : 'Submit Test Answers'}</span>
+              <span>
+                {submitting
+                  ? 'Submitting Answers...'
+                  : answeredCount === totalCount && totalCount > 0
+                  ? 'Submit Test Answers'
+                  : `Answer All to Submit (${answeredCount}/${totalCount})`}
+              </span>
             </button>
           </div>
         </div>
@@ -268,6 +276,40 @@ export const TestAssessmentModal: React.FC<TestAssessmentModalProps> = ({
                 </div>
               </div>
             ))}
+
+            {/* Bottom Final Submission Card */}
+            {totalCount > 0 && (
+              <div className="p-6 bg-gradient-to-br from-slate-50 to-brand-50/40 border border-slate-200/90 rounded-3xl text-center space-y-4 shadow-sm">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-900">End of Examination Verses</h4>
+                  <p className="text-xs text-slate-500">
+                    You have currently answered <strong className="font-bold text-slate-800">{answeredCount}</strong> of <strong className="font-bold text-slate-800">{totalCount}</strong> questions.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting || answeredCount < totalCount}
+                  className={`inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-98 ${
+                    submitting
+                      ? 'bg-brand-400 text-white cursor-wait'
+                      : answeredCount === totalCount && totalCount > 0
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-lg focus:ring-4 focus:ring-emerald-500/30'
+                      : 'bg-amber-100 text-amber-900 border border-amber-300 cursor-not-allowed'
+                  }`}
+                >
+                  <Send className="w-4 h-4" />
+                  <span>
+                    {submitting
+                      ? 'Submitting Answers...'
+                      : answeredCount === totalCount
+                      ? 'Submit All Test Answers Now'
+                      : `Answer All ${totalCount} Questions to Submit (${answeredCount}/${totalCount})`}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

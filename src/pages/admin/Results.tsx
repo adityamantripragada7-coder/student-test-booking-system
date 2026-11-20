@@ -687,9 +687,59 @@ export const AdminResults: React.FC = () => {
         onClose={() => setShowSingleModal(false)}
         title={targetRecord?.resultStatus === 'Published' ? 'Update Student Result' : 'Publish Student Result'}
         maxWidth="lg"
+        footer={
+          targetRecord && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+              <div className="text-xs font-semibold">
+                {!singleMemoryGrade || !singleMistakesGrade ? (
+                  <span className="inline-flex items-center space-x-1.5 text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Select both Memory & Mistakes grades</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center space-x-1.5 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Memory: <strong>{singleMemoryGrade}</strong> | Mistakes: <strong>{singleMistakesGrade}</strong></span>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2.5 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowSingleModal(false)}
+                  className="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="singleResultForm"
+                  disabled={singleModalLoading || !singleMemoryGrade || !singleMistakesGrade}
+                  className={`inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all active:scale-98 ${
+                    !singleMemoryGrade || !singleMistakesGrade
+                      ? 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
+                      : singleModalLoading
+                      ? 'bg-brand-400 text-white cursor-wait'
+                      : 'bg-brand-600 hover:bg-brand-700 text-white hover:shadow-lg focus:ring-4 focus:ring-brand-500/20'
+                  }`}
+                >
+                  <Send className="w-4 h-4 shrink-0" />
+                  <span>
+                    {singleModalLoading
+                      ? 'Saving Result...'
+                      : targetRecord.resultStatus === 'Published'
+                      ? 'Update & Publish Result'
+                      : 'Publish Official Result'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )
+        }
       >
         {targetRecord && (
-          <form onSubmit={handleSingleSubmit} className="space-y-5">
+          <form id="singleResultForm" onSubmit={handleSingleSubmit} className="space-y-5">
             {/* Student & Slot Summary Card */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-2">
               <div className="flex items-start justify-between">
@@ -795,28 +845,6 @@ export const AdminResults: React.FC = () => {
                 <span>{singleModalError}</span>
               </div>
             )}
-
-            {/* Modal Action Buttons */}
-            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowSingleModal(false)}
-                className="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={singleModalLoading || !singleMemoryGrade || !singleMistakesGrade}
-                className="px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700 active:scale-98 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {singleModalLoading
-                  ? 'Saving...'
-                  : targetRecord.resultStatus === 'Published'
-                  ? 'Update Result'
-                  : 'Publish Result'}
-              </button>
-            </div>
           </form>
         )}
       </Modal>
@@ -827,8 +855,35 @@ export const AdminResults: React.FC = () => {
         onClose={() => setShowBulkModal(false)}
         title={`Bulk Publish Results (${selectedBookingIds.length} Students)`}
         maxWidth="2xl"
+        footer={
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+            <span className="text-xs text-slate-500 font-medium">
+              Publishing for <strong className="font-bold text-slate-800">{selectedBookingIds.length}</strong> candidate(s)
+            </span>
+            <div className="flex items-center space-x-2.5 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowBulkModal(false)}
+                className="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="bulkResultForm"
+                disabled={bulkModalLoading}
+                className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl active:scale-98 shadow-md hover:shadow-lg focus:ring-4 focus:ring-brand-500/20 disabled:opacity-50 transition-all"
+              >
+                <Send className="w-4 h-4 shrink-0" />
+                <span>
+                  {bulkModalLoading ? 'Publishing...' : `Publish Results for ${selectedBookingIds.length} Students`}
+                </span>
+              </button>
+            </div>
+          </div>
+        }
       >
-        <form onSubmit={handleBulkSubmit} className="space-y-6">
+        <form id="bulkResultForm" onSubmit={handleBulkSubmit} className="space-y-6">
           <p className="text-xs sm:text-sm text-slate-500">
             Enter both <strong className="text-slate-800">Memory ⭐</strong> and{' '}
             <strong className="text-slate-800">Mistakes ⭐</strong> grades for all selected students across different slots.
@@ -968,24 +1023,6 @@ export const AdminResults: React.FC = () => {
               <span>{bulkModalError}</span>
             </div>
           )}
-
-          {/* Modal Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowBulkModal(false)}
-              className="px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={bulkModalLoading}
-              className="px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700 active:scale-98 shadow-sm disabled:opacity-50 transition-all"
-            >
-              {bulkModalLoading ? 'Publishing...' : `Publish Results for ${selectedBookingIds.length} Students`}
-            </button>
-          </div>
         </form>
       </Modal>
 

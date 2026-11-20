@@ -118,20 +118,7 @@ router.post('/submit', authenticateToken, requireStudent, async (req: AuthReques
 
     console.log(`✅ Saved StudentAnswer permanently in MongoDB: ${student.studentId} - Score: ${totalScore}/${maxScore} (${grade})`);
 
-    // 2. Automatically record/update the official Test Result in MongoDB Atlas
-    const resultDoc = await Result.create({
-      student: student._id,
-      testName: finalTestName,
-      marksObtained: totalScore,
-      maxMarks: maxScore,
-      grade,
-      status: 'Published',
-      dateUploaded: new Date(),
-    });
-
-    console.log(`✅ Published Result permanently in MongoDB: ${resultDoc._id} for Student ${student.studentId}`);
-
-    // 3. If there was an active booking for this student, mark it as completed
+    // 2. Mark student's booking as completed awaiting admin evaluation
     if (bookingId) {
       await Booking.findByIdAndUpdate(bookingId, { status: 'completed' });
     } else {
@@ -143,7 +130,7 @@ router.post('/submit', authenticateToken, requireStudent, async (req: AuthReques
 
     return res.status(201).json({
       success: true,
-      message: 'Test answers submitted successfully!',
+      message: 'Test answers submitted successfully! Results will be officially published after teacher evaluation.',
       submission: {
         id: newStudentAnswer._id,
         totalScore,
@@ -153,7 +140,6 @@ router.post('/submit', authenticateToken, requireStudent, async (req: AuthReques
         submittedAt: newStudentAnswer.submittedAt,
         answers: processedAnswers,
       },
-      result: resultDoc,
     });
   } catch (error: any) {
     console.error('Error submitting test answers:', error);

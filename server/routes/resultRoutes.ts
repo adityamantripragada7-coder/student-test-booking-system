@@ -189,6 +189,7 @@ router.get('/my', authenticateToken, requireStudent, async (req: AuthRequest, re
 
     const results = await Result.find({
       $or: [{ student: studentIdMatch }, { student: studentUser.id }],
+      status: 'Published',
     })
       .populate('slot', 'testTitle testDate startTime endTime location')
       .populate('booking', 'syllabus bookedAt status')

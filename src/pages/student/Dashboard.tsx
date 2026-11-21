@@ -5,7 +5,6 @@ import { Booking, Result, TestSlot } from '../../types';
 import { Badge } from '../../components/Badge';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { CardSkeleton } from '../../components/Skeleton';
-import { TestAssessmentModal } from '../../components/TestAssessmentModal';
 import {
   CalendarPlus,
   Award,
@@ -23,6 +22,7 @@ import {
   Calendar,
   CheckCircle,
   Sparkles,
+  XCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatTimeDisplay } from '../../utils/formatters';
@@ -40,9 +40,6 @@ export const StudentDashboard: React.FC = () => {
   // Cancel Modal State
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
-
-  // Test Assessment Modal State
-  const [showTestModal, setShowTestModal] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -95,14 +92,6 @@ export const StudentDashboard: React.FC = () => {
     } finally {
       setCancelLoading(false);
     }
-  };
-
-  const handleTestSubmitted = (data: any) => {
-    setNotification({
-      type: 'success',
-      message: `Test answers successfully submitted and evaluated! Score: ${data.submission.totalScore}/${data.submission.maxScore} (Grade: ${data.submission.grade})`,
-    });
-    fetchData();
   };
 
   if (loading) {
@@ -323,23 +312,27 @@ export const StudentDashboard: React.FC = () => {
                   )}
                 </div>
 
-                {/* Primary Actions: Take Test & Cancel */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowTestModal(true)}
-                    className="w-full sm:flex-1 inline-flex items-center justify-center space-x-2 px-4 py-3 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98 rounded-2xl shadow-xs transition-all"
-                  >
-                    <Send className="w-4 h-4 shrink-0" />
-                    <span>Take Test & Submit Answers</span>
-                  </button>
+                {/* Status Notice */}
+                <div className="p-3 bg-blue-50/80 border border-blue-100 rounded-2xl flex items-start space-x-2.5 text-xs text-blue-900">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    Your test slot is confirmed. Please attend the examination at the scheduled date and time. Results will be evaluated and posted by the administrator.
+                  </p>
+                </div>
+
+                {/* Cancel Booking Action */}
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <span className="text-[11px] text-slate-400">
+                    Booked on {new Date(activeBooking.bookedAt).toLocaleDateString()}
+                  </span>
 
                   <button
                     type="button"
                     onClick={() => setShowCancelModal(true)}
-                    className="w-full sm:w-auto px-4 py-3 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 active:scale-98 border border-rose-200/80 rounded-2xl transition-all"
+                    className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 active:scale-98 border border-rose-200/80 rounded-2xl transition-all"
                   >
-                    Cancel Booking
+                    <XCircle className="w-4 h-4 shrink-0" />
+                    <span>Cancel Booking</span>
                   </button>
                 </div>
 
@@ -533,17 +526,6 @@ export const StudentDashboard: React.FC = () => {
         isDanger={true}
         loading={cancelLoading}
       />
-
-      {/* Test Assessment Modal */}
-      {activeBooking && (
-        <TestAssessmentModal
-          isOpen={showTestModal}
-          onClose={() => setShowTestModal(false)}
-          bookingId={activeBooking._id}
-          syllabus={activeBooking.syllabus}
-          onSuccess={handleTestSubmitted}
-        />
-      )}
     </div>
   );
 };

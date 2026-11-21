@@ -5,8 +5,15 @@ export const VALID_GRADES: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 
 
 export interface IResult extends Document {
   student: Types.ObjectId;
+  studentId?: string;
+  studentName?: string;
+  studentPhone?: string;
   booking?: Types.ObjectId;
   slot?: Types.ObjectId;
+  slotTitle?: string;
+  slotDate?: string;
+  slotTime?: string;
+  syllabus?: string;
   testName: string;
   memoryGrade: GradeType;
   mistakesGrade: GradeType;
@@ -27,6 +34,20 @@ const ResultSchema = new Schema<IResult>(
       required: true,
       index: true,
     },
+    studentId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    studentName: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    studentPhone: {
+      type: String,
+      trim: true,
+    },
     booking: {
       type: Schema.Types.ObjectId,
       ref: 'Booking',
@@ -35,6 +56,22 @@ const ResultSchema = new Schema<IResult>(
       type: Schema.Types.ObjectId,
       ref: 'TestSlot',
       index: true,
+    },
+    slotTitle: {
+      type: String,
+      trim: true,
+    },
+    slotDate: {
+      type: String,
+      trim: true,
+    },
+    slotTime: {
+      type: String,
+      trim: true,
+    },
+    syllabus: {
+      type: String,
+      trim: true,
     },
     testName: {
       type: String,

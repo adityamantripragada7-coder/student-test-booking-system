@@ -273,6 +273,8 @@ export const AdminTestSlots: React.FC = () => {
         marksObtained: resultMarks === '' ? null : Number(resultMarks),
         maxMarks: resultMaxMarks === '' ? null : Number(resultMaxMarks),
         grade: resultGrade,
+        memoryGrade: resultGrade,
+        mistakesGrade: resultGrade,
       };
 
       const res = await api.post('/results', payload);

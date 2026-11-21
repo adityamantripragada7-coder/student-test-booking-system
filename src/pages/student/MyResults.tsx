@@ -111,7 +111,7 @@ export const StudentMyResults: React.FC = () => {
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-                  {latestResult.grade || '—'}
+                  {latestResult.memoryGrade || latestResult.grade || '—'}
                 </div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-300 block">
                   Compulsory Category
@@ -125,7 +125,7 @@ export const StudentMyResults: React.FC = () => {
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-                  {latestResult.grade || '—'}
+                  {latestResult.mistakesGrade || latestResult.grade || '—'}
                 </div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-300 block">
                   Compulsory Category
@@ -176,7 +176,7 @@ export const StudentMyResults: React.FC = () => {
                       <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </div>
                     <div className="pt-0.5">
-                      <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
+                      <Badge status={r.memoryGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
                     </div>
                   </div>
 
@@ -186,7 +186,7 @@ export const StudentMyResults: React.FC = () => {
                       <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </div>
                     <div className="pt-0.5">
-                      <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
+                      <Badge status={r.mistakesGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
                     </div>
                   </div>
                 </div>
@@ -237,10 +237,10 @@ export const StudentMyResults: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
+                        <Badge status={r.memoryGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
                       </td>
                       <td className="px-6 py-4">
-                        <Badge status={r.grade || '—'} className="text-xs px-3 py-0.5" />
+                        <Badge status={r.mistakesGrade || r.grade || '—'} className="text-xs px-3 py-0.5" />
                       </td>
                       <td className="px-6 py-4 font-medium text-slate-800">
                         {r.marksObtained !== null && r.marksObtained !== undefined

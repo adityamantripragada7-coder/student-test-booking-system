@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.js';
 import { TestSlot } from '../models/TestSlot.js';
 import { Booking } from '../models/Booking.js';
+import { Result } from '../models/Result.js';
 import { isDatabaseConnected } from '../db.js';
 
 const router = Router();
@@ -176,13 +177,38 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
     const slot = await TestSlot.findById(req.params.id);
     if (!slot) return res.status(404).json({ success: false, message: 'Test slot not found.' });
 
-    // Permanently delete all bookings regarding this test slot
+    // 1. Lock snapshot details onto any Results that referenced this slot so results NEVER disappear or lose context
+    await Result.updateMany(
+      { slot: slot._id },
+      {
+        $set: {
+          slotTitle: slot.testTitle || 'Archived Session',
+          slotDate: slot.testDate || 'N/A',
+          slotTime: slot.startTime || 'N/A',
+        },
+        $unset: { slot: 1 },
+      }
+    );
+
+    // 2. Lock snapshot onto any Results referencing bookings of this slot
+    const bookingsToDelete = await Booking.find({ slot: slot._id }).select('_id syllabus');
+    for (const b of bookingsToDelete) {
+      await Result.updateMany(
+        { booking: b._id },
+        {
+          $set: { syllabus: b.syllabus },
+          $unset: { booking: 1 },
+        }
+      );
+    }
+
+    // 3. Delete the slot and its bookings (RESULTS ARE NEVER DELETED)
     const deleteResult = await Booking.deleteMany({ slot: slot._id });
     await TestSlot.findByIdAndDelete(slot._id);
 
     return res.json({
       success: true,
-      message: `Test slot and all regarding bookings (${deleteResult.deletedCount || 0}) deleted successfully.`,
+      message: `Test slot and bookings removed. All posted examination results remain permanently preserved.`,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });

@@ -94,8 +94,9 @@ export const AdminBookings: React.FC = () => {
     const map: Record<string, Result> = {};
     for (const r of existingResults) {
       const student = typeof r.student === 'object' ? r.student : null;
-      if (student?.studentId) {
-        map[student.studentId.toUpperCase()] = r;
+      const sId = student?.studentId || r.studentId;
+      if (sId) {
+        map[sId.toUpperCase()] = r;
       }
     }
     return map;

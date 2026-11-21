@@ -48,8 +48,15 @@ export interface Booking {
 export interface Result {
   _id: string;
   student: Student | string;
+  studentId?: string;
+  studentName?: string;
+  studentPhone?: string;
   booking?: Booking | string;
   slot?: TestSlot | string;
+  slotTitle?: string;
+  slotDate?: string;
+  slotTime?: string;
+  syllabus?: string;
   testName: string;
   memoryGrade: GradeType;
   mistakesGrade: GradeType;

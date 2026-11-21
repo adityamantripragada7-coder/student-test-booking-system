@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import mongoose from 'mongoose';
 import { authenticateToken, requireAdmin, requireStudent, AuthRequest } from '../middleware/auth.js';
 import { Result, VALID_GRADES, GradeType } from '../models/Result.js';
 import { Student } from '../models/Student.js';
@@ -9,7 +10,7 @@ import { isDatabaseConnected } from '../db.js';
 const router = Router();
 
 // GET /api/results/booked-students
-// Centralized list of ALL students who booked slots across ALL available slots
+// Centralized list of ALL published student results and active bookings across ALL slots
 router.get('/booked-students', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     if (!isDatabaseConnected()) {
@@ -19,101 +20,142 @@ router.get('/booked-students', authenticateToken, requireAdmin, async (req: Auth
       });
     }
 
-    const search = ((req.query.search as string) || '').trim();
+    const search = ((req.query.search as string) || '').trim().toLowerCase();
     const slotId = (req.query.slotId as string) || '';
     const resultStatusFilter = (req.query.resultStatus as string) || ''; // 'Published', 'Pending', or ''
 
-    // Build booking query
+    // 1. Fetch ALL permanent Result documents stored in MongoDB Atlas (NEVER deleted even if slot or booking is deleted)
+    const allResults = await Result.find()
+      .populate('student', 'studentId name phone')
+      .populate('slot', 'testTitle testDate startTime endTime location status')
+      .populate('booking', 'syllabus bookedAt createdAt status')
+      .sort({ dateUploaded: -1 })
+      .lean();
+
+    const coveredBookingIds = new Set<string>();
+    const coveredStudentSlotKeys = new Set<string>();
+
+    const publishedRecords: any[] = [];
+    for (const r of allResults) {
+      const student = (r.student as any) || {};
+      const slot = (r.slot as any);
+      const booking = (r.booking as any);
+
+      if (r.booking) {
+        coveredBookingIds.add(r.booking.toString());
+      }
+      if (student._id && (r.slot || r.slotDate)) {
+        coveredStudentSlotKeys.add(`${student._id.toString()}_${r.slot ? r.slot.toString() : r.slotDate}`);
+      }
+
+      const candidateId = student.studentId || r.studentId || 'N/A';
+      const candidateName = student.name || r.studentName || 'Student';
+      const candidatePhone = student.phone || r.studentPhone || '';
+      const sessionTitle = (slot && slot.testTitle) || r.slotTitle || r.testName || 'Examination Session';
+      const sessionDate = (slot && slot.testDate) || r.slotDate || (r.dateUploaded ? new Date(r.dateUploaded).toISOString().split('T')[0] : 'N/A');
+      const sessionTime = (slot && slot.startTime) ? `${slot.startTime}${slot.endTime ? ` - ${slot.endTime}` : ''}` : (r.slotTime || 'N/A');
+      const sessionLocation = (slot && slot.location) || 'Online / Hall';
+      const syllabusTag = (booking && booking.syllabus) || r.syllabus || r.testName || 'General Syllabus';
+
+      publishedRecords.push({
+        bookingId: booking ? booking._id.toString() : (r.booking ? r.booking.toString() : `res-${r._id}`),
+        studentDbId: student._id ? student._id.toString() : (r.student ? r.student.toString() : ''),
+        studentId: candidateId,
+        studentName: candidateName,
+        studentPhone: candidatePhone,
+        slotId: slot ? slot._id.toString() : (r.slot ? r.slot.toString() : ''),
+        slotTitle: sessionTitle,
+        slotDate: sessionDate,
+        slotTime: sessionTime,
+        slotLocation: sessionLocation,
+        syllabus: syllabusTag,
+        bookingDate: (booking && (booking.bookedAt || booking.createdAt)) || r.dateUploaded || (r as any).createdAt,
+        bookingStatus: booking ? booking.status : 'completed',
+        resultId: r._id.toString(),
+        resultStatus: 'Published',
+        memoryGrade: r.memoryGrade || r.grade,
+        mistakesGrade: r.mistakesGrade || r.grade,
+        dateUploaded: r.dateUploaded,
+      });
+    }
+
+    // 2. Fetch Active Bookings that are still Pending teacher evaluation
     const bookingQuery: any = { status: { $ne: 'cancelled' } };
     if (slotId) {
       bookingQuery.slot = slotId;
     }
 
-    if (search) {
-      const matchingStudents = await Student.find({
-        $or: [
-          { studentId: { $regex: search, $options: 'i' } },
-          { name: { $regex: search, $options: 'i' } },
-        ],
-      }).select('_id');
-      bookingQuery.student = { $in: matchingStudents.map((s) => s._id) };
-    }
-
-    // Fetch all bookings with populated student and slot info
     const bookings = await Booking.find(bookingQuery)
       .populate('student', 'studentId name phone')
       .populate('slot', 'testTitle testDate startTime endTime location status')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Fetch all existing results to map them onto bookings
-    const bookingIds = bookings.map((b) => b._id);
-    const existingResults = await Result.find({
-      $or: [
-        { booking: { $in: bookingIds } },
-        { student: { $in: bookings.map((b) => (b.student as any)?._id).filter(Boolean) } },
-      ],
-    }).lean();
+    const pendingRecords: any[] = [];
+    for (const b of bookings) {
+      const student = (b.student as any);
+      const slot = (b.slot as any);
+      if (!student) continue;
 
-    // Create lookup map by bookingId string and studentId string
-    const resultMapByBooking = new Map<string, any>();
-    const resultMapByStudent = new Map<string, any>();
-    for (const r of existingResults) {
-      if (r.booking) {
-        resultMapByBooking.set(r.booking.toString(), r);
+      const bookingIdStr = b._id.toString();
+      const studentSlotKey = `${student._id.toString()}_${slot ? slot._id.toString() : ''}`;
+
+      // If this booking or student-slot already has a published result, skip adding a duplicate pending row
+      if (coveredBookingIds.has(bookingIdStr) || coveredStudentSlotKeys.has(studentSlotKey)) {
+        continue;
       }
-      if (r.student) {
-        resultMapByStudent.set(r.student.toString(), r);
-      }
+
+      pendingRecords.push({
+        bookingId: bookingIdStr,
+        studentDbId: student._id.toString(),
+        studentId: student.studentId || 'N/A',
+        studentName: student.name || 'Student',
+        studentPhone: student.phone || '',
+        slotId: slot ? slot._id.toString() : '',
+        slotTitle: slot ? (slot.testTitle || 'Test Session') : 'General Session',
+        slotDate: slot ? slot.testDate : 'N/A',
+        slotTime: slot ? `${slot.startTime}${slot.endTime ? ` - ${slot.endTime}` : ''}` : 'N/A',
+        slotLocation: slot ? slot.location : 'Online / Hall',
+        syllabus: b.syllabus || 'General Syllabus',
+        bookingDate: b.bookedAt || (b as any).createdAt,
+        bookingStatus: b.status,
+        resultId: null,
+        resultStatus: 'Pending',
+        memoryGrade: null,
+        mistakesGrade: null,
+        dateUploaded: null,
+      });
     }
 
-    // Map into comprehensive student booking records
-    const records = bookings
-      .map((b: any) => {
-        const student = b.student;
-        const slot = b.slot;
-        if (!student) return null;
+    // 3. Combine both collections: All permanent Results + Any Pending bookings
+    let allCombined = [...publishedRecords, ...pendingRecords];
 
-        const matchedResult =
-          resultMapByBooking.get(b._id.toString()) ||
-          resultMapByStudent.get(student._id.toString());
+    // Filter by slotId if passed
+    if (slotId) {
+      allCombined = allCombined.filter((rec) => rec.slotId === slotId);
+    }
 
-        const hasResult = !!matchedResult;
-        const status = hasResult ? (matchedResult.status || 'Published') : 'Pending';
+    // Filter by search query (Candidate Name or Student ID)
+    if (search) {
+      allCombined = allCombined.filter(
+        (rec) =>
+          rec.studentName.toLowerCase().includes(search) ||
+          rec.studentId.toLowerCase().includes(search) ||
+          (rec.syllabus && rec.syllabus.toLowerCase().includes(search))
+      );
+    }
 
-        return {
-          bookingId: b._id,
-          studentDbId: student._id,
-          studentId: student.studentId,
-          studentName: student.name,
-          studentPhone: student.phone,
-          slotId: slot ? slot._id : null,
-          slotTitle: slot ? (slot.testTitle || 'Test Session') : 'General Session',
-          slotDate: slot ? slot.testDate : 'N/A',
-          slotTime: slot ? `${slot.startTime}${slot.endTime ? ` - ${slot.endTime}` : ''}` : 'N/A',
-          slotLocation: slot ? slot.location : 'Online / Hall',
-          syllabus: b.syllabus || 'General Syllabus',
-          bookingDate: b.bookedAt || b.createdAt,
-          bookingStatus: b.status,
-          resultId: matchedResult ? matchedResult._id : null,
-          resultStatus: status,
-          memoryGrade: matchedResult ? matchedResult.memoryGrade : null,
-          mistakesGrade: matchedResult ? matchedResult.mistakesGrade : null,
-          dateUploaded: matchedResult ? matchedResult.dateUploaded : null,
-        };
-      })
-      .filter(Boolean) as any[];
-
-    // Apply result status filter if specified
+    // Filter by Result Status (Published or Pending)
     const filteredRecords = resultStatusFilter
-      ? records.filter((r) => r.resultStatus.toLowerCase() === resultStatusFilter.toLowerCase())
-      : records;
+      ? allCombined.filter((r) => r.resultStatus.toLowerCase() === resultStatusFilter.toLowerCase())
+      : allCombined;
 
     return res.json({
       success: true,
       records: filteredRecords,
       totalBookedStudents: filteredRecords.length,
-      publishedCount: records.filter((r) => r.resultStatus === 'Published').length,
-      pendingCount: records.filter((r) => r.resultStatus === 'Pending').length,
+      publishedCount: allCombined.filter((r) => r.resultStatus === 'Published').length,
+      pendingCount: allCombined.filter((r) => r.resultStatus === 'Pending').length,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
@@ -246,16 +288,38 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
 
     // Resolve booking and slot if provided
     let resolvedSlotId = slotId;
-    if (bookingId && !resolvedSlotId) {
-      const b = await Booking.findById(bookingId);
-      if (b) resolvedSlotId = b.slot;
+    let foundBooking: any = null;
+    if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) {
+      foundBooking = await Booking.findById(bookingId).populate('slot');
+      if (foundBooking && foundBooking.slot && !resolvedSlotId) {
+        resolvedSlotId = (foundBooking.slot as any)._id;
+      }
     }
 
-    const resolvedTestName = (testName && testName.trim()) || 'Assessment Session';
+    let foundSlot: any = null;
+    if (resolvedSlotId && mongoose.Types.ObjectId.isValid(resolvedSlotId)) {
+      foundSlot = await TestSlot.findById(resolvedSlotId);
+    } else if (foundBooking && foundBooking.slot) {
+      foundSlot = foundBooking.slot;
+    }
+
+    let foundStudent: any = null;
+    if (targetStudentId && mongoose.Types.ObjectId.isValid(targetStudentId)) {
+      foundStudent = await Student.findById(targetStudentId);
+    }
+
+    const snapStudentId = (foundStudent?.studentId || studentId || '').trim();
+    const snapStudentName = (foundStudent?.name || req.body.studentName || '').trim();
+    const snapStudentPhone = (foundStudent?.phone || req.body.studentPhone || '').trim();
+    const resolvedTestName = (testName && testName.trim()) || foundSlot?.testTitle || 'Assessment Session';
+    const snapSlotTitle = (foundSlot?.testTitle || req.body.slotTitle || resolvedTestName).trim();
+    const snapSlotDate = (foundSlot?.testDate || req.body.slotDate || '').trim();
+    const snapSlotTime = (foundSlot?.startTime ? `${foundSlot.startTime}${foundSlot.endTime ? ` - ${foundSlot.endTime}` : ''}` : (req.body.slotTime || '')).trim();
+    const snapSyllabus = (foundBooking?.syllabus || req.body.syllabus || '').trim();
 
     // Prevent duplicate result records for the same booking: Update if exists, else create
     let existingResult = null;
-    if (bookingId) {
+    if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) {
       existingResult = await Result.findOne({ booking: bookingId });
     }
     if (!existingResult && targetStudentId) {
@@ -271,15 +335,29 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
       existingResult.testName = resolvedTestName;
       existingResult.status = status || 'Published';
       existingResult.dateUploaded = new Date();
-      if (bookingId) existingResult.booking = bookingId;
-      if (resolvedSlotId) existingResult.slot = resolvedSlotId;
+      if (snapStudentId) existingResult.studentId = snapStudentId;
+      if (snapStudentName) existingResult.studentName = snapStudentName;
+      if (snapStudentPhone) existingResult.studentPhone = snapStudentPhone;
+      if (snapSlotTitle) existingResult.slotTitle = snapSlotTitle;
+      if (snapSlotDate) existingResult.slotDate = snapSlotDate;
+      if (snapSlotTime) existingResult.slotTime = snapSlotTime;
+      if (snapSyllabus) existingResult.syllabus = snapSyllabus;
+      if (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) existingResult.booking = bookingId;
+      if (resolvedSlotId && mongoose.Types.ObjectId.isValid(resolvedSlotId)) existingResult.slot = resolvedSlotId;
       await existingResult.save();
       savedResult = existingResult;
     } else {
       savedResult = await Result.create({
         student: targetStudentId,
-        booking: bookingId || undefined,
-        slot: resolvedSlotId || undefined,
+        studentId: snapStudentId,
+        studentName: snapStudentName,
+        studentPhone: snapStudentPhone,
+        booking: (bookingId && mongoose.Types.ObjectId.isValid(bookingId)) ? bookingId : undefined,
+        slot: (resolvedSlotId && mongoose.Types.ObjectId.isValid(resolvedSlotId)) ? resolvedSlotId : undefined,
+        slotTitle: snapSlotTitle,
+        slotDate: snapSlotDate,
+        slotTime: snapSlotTime,
+        syllabus: snapSyllabus,
         testName: resolvedTestName,
         memoryGrade: validMemoryGrade,
         mistakesGrade: validMistakesGrade,
@@ -343,16 +421,42 @@ router.post('/bulk', authenticateToken, requireAdmin, async (req: AuthRequest, r
       const testName = item.testName || item.slotTitle || 'Assessment Session';
 
       let targetStudentId = item.studentDbId;
+      let foundStudent: any = null;
+      if (targetStudentId && mongoose.Types.ObjectId.isValid(targetStudentId)) {
+        foundStudent = await Student.findById(targetStudentId);
+      }
       if (!targetStudentId && item.studentId) {
-        const student = await Student.findOne({ studentId: item.studentId.toUpperCase().trim() });
-        if (student) targetStudentId = student._id;
+        foundStudent = await Student.findOne({ studentId: item.studentId.toUpperCase().trim() });
+        if (foundStudent) targetStudentId = foundStudent._id;
       }
 
       if (!targetStudentId) continue;
 
+      let foundBooking: any = null;
+      if (item.bookingId && mongoose.Types.ObjectId.isValid(item.bookingId)) {
+        foundBooking = await Booking.findById(item.bookingId).populate('slot');
+      }
+      let foundSlot: any = null;
+      if (item.slotId && mongoose.Types.ObjectId.isValid(item.slotId)) {
+        foundSlot = await TestSlot.findById(item.slotId);
+      } else if (foundBooking && foundBooking.slot) {
+        foundSlot = foundBooking.slot;
+      }
+
+      const snapStudentId = (foundStudent?.studentId || item.studentId || '').trim();
+      const snapStudentName = (foundStudent?.name || item.studentName || '').trim();
+      const snapStudentPhone = (foundStudent?.phone || item.studentPhone || '').trim();
+      const snapSlotTitle = (foundSlot?.testTitle || item.slotTitle || testName).trim();
+      const snapSlotDate = (foundSlot?.testDate || item.slotDate || '').trim();
+      const snapSlotTime = (foundSlot?.startTime ? `${foundSlot.startTime}${foundSlot.endTime ? ` - ${foundSlot.endTime}` : ''}` : (item.slotTime || '')).trim();
+      const snapSyllabus = (foundBooking?.syllabus || item.syllabus || '').trim();
+
       let existing = null;
-      if (item.bookingId) {
+      if (item.bookingId && mongoose.Types.ObjectId.isValid(item.bookingId)) {
         existing = await Result.findOne({ booking: item.bookingId });
+      }
+      if (!existing && targetStudentId) {
+        existing = await Result.findOne({ student: targetStudentId, testName });
       }
 
       if (existing) {
@@ -362,13 +466,27 @@ router.post('/bulk', authenticateToken, requireAdmin, async (req: AuthRequest, r
         existing.testName = testName;
         existing.status = 'Published';
         existing.dateUploaded = new Date();
+        if (snapStudentId) existing.studentId = snapStudentId;
+        if (snapStudentName) existing.studentName = snapStudentName;
+        if (snapStudentPhone) existing.studentPhone = snapStudentPhone;
+        if (snapSlotTitle) existing.slotTitle = snapSlotTitle;
+        if (snapSlotDate) existing.slotDate = snapSlotDate;
+        if (snapSlotTime) existing.slotTime = snapSlotTime;
+        if (snapSyllabus) existing.syllabus = snapSyllabus;
         await existing.save();
         savedRecords.push(existing);
       } else {
         const created = await Result.create({
           student: targetStudentId,
-          booking: item.bookingId || undefined,
-          slot: item.slotId || undefined,
+          studentId: snapStudentId,
+          studentName: snapStudentName,
+          studentPhone: snapStudentPhone,
+          booking: (item.bookingId && mongoose.Types.ObjectId.isValid(item.bookingId)) ? item.bookingId : undefined,
+          slot: (item.slotId && mongoose.Types.ObjectId.isValid(item.slotId)) ? item.slotId : (foundSlot ? foundSlot._id : undefined),
+          slotTitle: snapSlotTitle,
+          slotDate: snapSlotDate,
+          slotTime: snapSlotTime,
+          syllabus: snapSyllabus,
           testName,
           memoryGrade,
           mistakesGrade,

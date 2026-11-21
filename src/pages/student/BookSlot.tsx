@@ -24,7 +24,7 @@ import {
   Tag,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { formatTimeDisplay } from '../admin/Bookings';
+import { formatTimeDisplay } from '../../utils/formatters';
 
 interface BookingSuccessData {
   bookingId: string;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../api/client';
-import { BookedStudentRecord, GradeType } from '../../types';
+import { BookedStudentRecord, GradeType, GRADE_OPTIONS } from '../../types';
+import { formatTimeDisplay } from '../../utils/formatters';
 import { Badge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -26,9 +27,6 @@ import {
   Filter,
   RefreshCw,
 } from 'lucide-react';
-import { formatTimeDisplay } from './Bookings';
-
-export const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'Retest'];
 
 export const AdminResults: React.FC = () => {
   const [records, setRecords] = useState<BookedStudentRecord[]>([]);

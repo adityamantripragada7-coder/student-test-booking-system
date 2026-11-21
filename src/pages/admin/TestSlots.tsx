@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../../api/client';
-import { TestSlot, Booking, Result, GradeType, Pagination as PaginationType } from '../../types';
+import { TestSlot, Booking, Result, GradeType, Pagination as PaginationType, GRADE_OPTIONS } from '../../types';
+import { formatTimeDisplay } from '../../utils/formatters';
 import { Badge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -25,9 +26,6 @@ import {
   BookOpen,
   Phone,
 } from 'lucide-react';
-import { formatTimeDisplay } from './Bookings';
-
-const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'Retest'];
 
 export const AdminTestSlots: React.FC = () => {
   const [slots, setSlots] = useState<TestSlot[]>([]);

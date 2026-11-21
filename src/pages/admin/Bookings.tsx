@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../../api/client';
-import { Booking, Result, GradeType, Pagination as PaginationType } from '../../types';
+import { Booking, Result, GradeType, Pagination as PaginationType, GRADE_OPTIONS } from '../../types';
+import { formatTimeDisplay } from '../../utils/formatters';
 import { Badge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -25,20 +26,6 @@ import {
   Phone,
   Send,
 } from 'lucide-react';
-
-const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'Retest'];
-
-export const formatTimeDisplay = (timeStr?: string): string => {
-  if (!timeStr) return 'Unscheduled Time';
-  const parts = timeStr.trim().split(':');
-  let hours = parseInt(parts[0], 10);
-  const minutes = parts[1] || '00';
-  if (isNaN(hours)) return timeStr;
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  return `${hours}:${minutes} ${ampm}`;
-};
 
 export const AdminBookings: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);

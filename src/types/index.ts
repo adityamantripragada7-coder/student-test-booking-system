@@ -19,6 +19,7 @@ export interface Student {
 }
 
 export type GradeType = 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'Retest';
+export const GRADE_OPTIONS: GradeType[] = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'Retest'];
 
 export interface TestSlot {
   _id: string;

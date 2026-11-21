@@ -25,7 +25,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatTimeDisplay } from '../admin/Bookings';
+import { formatTimeDisplay } from '../../utils/formatters';
 
 export const StudentDashboard: React.FC = () => {
   const { user } = useAuth();

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -50,22 +51,22 @@ export const Modal: React.FC<ModalProps> = ({
     '4xl': 'max-w-4xl',
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 overflow-y-auto"
       role="dialog"
       aria-modal="true"
     >
-      {/* Backdrop */}
+      {/* Full Viewport Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-fade-in"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Dialog Card (Dynamic Viewport Height & Independent Scroll Container) */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[88dvh] sm:max-h-[86dvh] my-auto flex flex-col bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-fade-in text-left z-10`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[88dvh] sm:max-h-[86dvh] my-auto flex flex-col bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden text-left z-10`}
       >
         {/* Sticky Modal Header */}
         <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 bg-white shrink-0 z-20">
@@ -98,6 +99,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
